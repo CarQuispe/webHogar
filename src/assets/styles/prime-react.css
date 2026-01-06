@@ -1,0 +1,26 @@
+/* Sobreescritura de estilos PrimeReact para que coincidan con nuestro tema */
+.p-button {
+  font-weight: 500 !important;
+}
+
+.p-card {
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
+}
+
+.p-inputtext {
+  width: 100% !important;
+}
+
+.p-datatable {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.p-dropdown {
+  width: 100% !important;
+}
+
+.p-toast {
+  z-index: 9999 !important;
+}
