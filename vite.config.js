@@ -5,6 +5,12 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+
+  // 🔥 CLAVE PARA EL ERROR DE TOP-LEVEL AWAIT
+  build: {
+    target: 'es2022', // o 'esnext'
+  },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

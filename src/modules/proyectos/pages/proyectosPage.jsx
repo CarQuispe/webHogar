@@ -3,8 +3,9 @@
  * Página de gestión de proyectos
  */
 // src/modules/proyectos/pages/proyectosPage.jsx
+
 import React from 'react';
-import '../../../../assets/styles/global.css';
+import "../../../assets/styles/global.css"
 
 export const ProyectosPage = () => {
   return (
