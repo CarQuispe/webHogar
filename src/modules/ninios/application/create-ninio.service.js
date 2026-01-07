@@ -3,12 +3,12 @@
 export class CreateNinioService {
   constructor(niniosRepository) {
     this.niniosRepository = niniosRepository;
-    console.log('🚀 [CreateNinioService] Inicializado');
+    console.log(' [CreateNinioService] Inicializado');
   }
 
   async execute(ninioData) {
     try {
-      console.log('📝 [CreateNinioService] Ejecutando con datos:', ninioData);
+      console.log(' [CreateNinioService] Ejecutando con datos:', ninioData);
       
       // 1. Validaciones básicas
       const errors = this.validateInput(ninioData);
@@ -20,7 +20,7 @@ export class CreateNinioService {
       const cleanCI = ninioData.ci.replace(/\s/g, '');
       
       // 3. Verificar si ya existe un niño con el mismo CI
-      console.log(`🔍 [CreateNinioService] Verificando existencia de CI: ${cleanCI}`);
+      console.log(` [CreateNinioService] Verificando existencia de CI: ${cleanCI}`);
       
       let existingNinio = null;
       try {
@@ -28,7 +28,7 @@ export class CreateNinioService {
       } catch (ciError) {
         // Si el endpoint no existe o da error 404, continuar
         if (!ciError.message.includes('404')) {
-          console.warn('⚠️ [CreateNinioService] Error al verificar CI:', ciError.message);
+          console.warn(' [CreateNinioService] Error al verificar CI:', ciError.message);
         }
       }
       
@@ -57,12 +57,12 @@ export class CreateNinioService {
         motivo_egreso: ninioData.motivo_egreso?.trim() || null
       };
       
-      console.log('📤 [CreateNinioService] Datos a enviar:', ninioToCreate);
+      console.log(' [CreateNinioService] Datos a enviar:', ninioToCreate);
       
       // 5. Crear el niño
       const nuevoNinio = await this.niniosRepository.create(ninioToCreate);
       
-      console.log('✅ [CreateNinioService] Niño creado:', nuevoNinio);
+      console.log(' [CreateNinioService] Niño creado:', nuevoNinio);
       
       // 6. Obtener nombre completo para el log
       let nombreCompleto = '';
@@ -78,7 +78,7 @@ export class CreateNinioService {
         nombreCompleto = `${nuevoNinio.nombre || ''} ${nuevoNinio.apellido_paterno || ''} ${nuevoNinio.apellido_materno || ''}`.trim();
       }
       
-      console.log(`📋 [CreateNinioService] Nuevo niño: ${nombreCompleto} (CI: ${cleanCI})`);
+      console.log(` [CreateNinioService] Nuevo niño: ${nombreCompleto} (CI: ${cleanCI})`);
       
       // 7. Retornar resultado
       return {
@@ -88,7 +88,7 @@ export class CreateNinioService {
       };
       
     } catch (error) {
-      console.error('🔥 [CreateNinioService] Error:', error);
+      console.error(' [CreateNinioService] Error:', error);
       
       // Mejorar mensajes de error
       const userMessage = this.getUserFriendlyErrorMessage(error);

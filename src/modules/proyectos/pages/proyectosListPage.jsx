@@ -2,189 +2,316 @@
  * ProyectosListPage - Sistema del Hogar de Niños
  * Página de gestión de proyectos
  */
-// src/modules/proyectos/presentation/proyectosListPage.jsx
+
 import React, { useState } from 'react';
-import { Search, Plus, FolderKanban, Calendar, Users } from 'lucide-react';
+import PropTypes from 'prop-types';
+import {
+  Plus,
+  Search,
+  Eye,
+  LayoutGrid,
+  List,
+  Calendar,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const ProyectosListPage = () => {
+// UI Components
+import { Card, CardContent } from '../../components/ui/Card';
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+import { Pagination } from '../../components/ui/Pagination';
+import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+
+/* =====================
+   Constantes
+===================== */
+
+export const ProjectStatus = {
+  ACTIVO: 'Activo',
+  EN_EJECUCION: 'En Ejecución',
+  FINALIZADO: 'Finalizado',
+};
+
+/* =====================
+   Mock de datos
+===================== */
+
+const mockProjects = [
+  {
+    id: 1,
+    name: 'Educación Integral 2024',
+    description: 'Programa de apoyo educativo para todos los residentes',
+    responsible: 'Ana Martínez',
+    status: ProjectStatus.EN_EJECUCION,
+    progress: 75,
+    budget: 15000,
+    startDate: '2024-01-15',
+    endDate: '2024-12-31',
+    category: 'Educación',
+  },
+  {
+    id: 2,
+    name: 'Salud y Bienestar',
+    description: 'Programa de salud preventiva y atención médica',
+    responsible: 'Dr. Carlos López',
+    status: ProjectStatus.EN_EJECUCION,
+    progress: 60,
+    budget: 20000,
+    startDate: '2024-03-01',
+    endDate: '2024-12-31',
+    category: 'Salud',
+  },
+  {
+    id: 3,
+    name: 'Talleres Recreativos',
+    description: 'Actividades deportivas y artísticas',
+    responsible: 'Laura Sánchez',
+    status: ProjectStatus.ACTIVO,
+    progress: 90,
+    budget: 8000,
+    startDate: '2024-02-10',
+    endDate: '2024-11-30',
+    category: 'Recreación',
+  },
+  {
+    id: 4,
+    name: 'Apoyo Psicológico',
+    description: 'Programa de acompañamiento psicológico',
+    responsible: 'Dr. Carlos López',
+    status: ProjectStatus.EN_EJECUCION,
+    progress: 70,
+    budget: 12000,
+    startDate: '2024-01-20',
+    endDate: '2024-12-31',
+    category: 'Psicología',
+  },
+  {
+    id: 5,
+    name: 'Capacitación de Personal',
+    description: 'Formación continua del equipo de trabajo',
+    responsible: 'María González',
+    status: ProjectStatus.FINALIZADO,
+    progress: 100,
+    budget: 5000,
+    startDate: '2024-06-01',
+    endDate: '2024-09-30',
+    category: 'Capacitación',
+  },
+];
+
+/* =====================
+   Componente principal
+===================== */
+
+export function ProjectList() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [proyectos] = useState([
-    {
-      id: 1,
-      nombre: 'Programa de Educación',
-      descripcion: 'Programa de apoyo educativo para residentes',
-      fechaInicio: '2026-01-01',
-      fechaFin: '2026-12-31',
-      estado: 'En Progreso',
-      responsable: 'María García',
-      participantes: 15,
-      progreso: 35,
-    },
-    {
-      id: 2,
-      nombre: 'Actividades Recreativas',
-      descripcion: 'Talleres y actividades deportivas',
-      fechaInicio: '2026-01-15',
-      fechaFin: '2026-06-30',
-      estado: 'En Progreso',
-      responsable: 'Juan Pérez',
-      participantes: 20,
-      progreso: 20,
-    },
-  ]);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredProyectos = proyectos.filter(proyecto =>
-    proyecto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proyecto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const statusOptions = [
+    { value: 'all', label: 'Todos los estados' },
+    { value: ProjectStatus.ACTIVO, label: 'Activo' },
+    { value: ProjectStatus.EN_EJECUCION, label: 'En Ejecución' },
+    { value: ProjectStatus.FINALIZADO, label: 'Finalizado' },
+  ];
+
+  const filteredProjects = mockProjects.filter((project) => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'all' || project.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case ProjectStatus.ACTIVO:
+        return 'success';
+      case ProjectStatus.EN_EJECUCION:
+        return 'info';
+      case ProjectStatus.FINALIZADO:
+        return 'default';
+      default:
+        return 'warning';
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      Educación: 'from-blue-500 to-blue-600',
+      Salud: 'from-green-500 to-green-600',
+      Recreación: 'from-orange-500 to-orange-600',
+      Psicología: 'from-purple-500 to-purple-600',
+      Capacitación: 'from-pink-500 to-pink-600',
+    };
+    return colors[category] || 'from-gray-500 to-gray-600';
+  };
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs items={[{ label: 'Proyectos' }]} />
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl text-gray-800">
-            Proyectos
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Gestión de programas y actividades del centro
+          <h1 className="text-gray-900 mb-2">Gestión de Proyectos</h1>
+          <p className="text-gray-600">
+            Administra los proyectos del centro
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
-          <Plus className="w-5 h-5" />
-          Nuevo Proyecto
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded ${
+                viewMode === 'grid'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <LayoutGrid className="w-5 h-5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded ${
+                viewMode === 'list'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <List className="w-5 h-5" />
+            </button>
+          </div>
+
+          <Link to="/projects/new">
+            <Button variant="primary">
+              <Plus className="w-5 h-5" />
+              Nuevo Proyecto
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar proyectos por nombre o descripción..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <Input
+              type="text"
+              placeholder="Buscar proyectos..."
+              icon={<Search className="w-5 h-5" />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <Select
+            options={statusOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Proyectos</p>
-              <p className="text-3xl text-gray-800 mt-1">{proyectos.length}</p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <FolderKanban className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">En Progreso</p>
-              <p className="text-3xl text-gray-800 mt-1">
-                {proyectos.filter(p => p.estado === 'En Progreso').length}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <FolderKanban className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Participantes</p>
-              <p className="text-3xl text-gray-800 mt-1">
-                {proyectos.reduce((sum, p) => sum + p.participantes, 0)}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Users className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project) => (
+            <Card key={project.id} hover>
+              <div
+                className={`h-2 bg-gradient-to-r ${getCategoryColor(
+                  project.category
+                )} rounded-t-lg -mt-6 -mx-6 mb-4`}
+              />
 
-      {/* Proyectos List */}
-      <div className="space-y-4">
-        {filteredProyectos.map((proyecto) => (
-          <div key={proyecto.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FolderKanban className="w-6 h-6 text-purple-600" />
+              <CardContent>
+                <div className="flex items-start justify-between mb-3">
+                  <h4 className="text-gray-900">{project.name}</h4>
+                  <Badge variant={getStatusColor(project.status)}>
+                    {project.status}
+                  </Badge>
                 </div>
-                <div>
-                  <h3 className="text-xl text-gray-800 mb-1">
-                    {proyecto.nombre}
-                  </h3>
-                  <p className="text-gray-600">
-                    {proyecto.descripcion}
-                  </p>
+
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  {project.description}
+                </p>
+
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-gray-600">Avance</span>
+                      <span className="text-gray-900">
+                        {project.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Responsable</span>
+                    <span className="text-gray-900">
+                      {project.responsible}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span>
+                      {new Date(project.startDate).toLocaleDateString('es-ES', {
+                        month: 'short',
+                        year: 'numeric',
+                      })}{' '}
+                      -{' '}
+                      {new Date(project.endDate).toLocaleDateString('es-ES', {
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                {proyecto.estado}
-              </span>
-            </div>
 
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">Progreso</span>
-                <span className="text-sm text-gray-800">{proyecto.progreso}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${proyecto.progreso}%` }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="w-4 h-4" />
-                Inicio: {new Date(proyecto.fechaInicio).toLocaleDateString('es-ES')}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="w-4 h-4" />
-                Fin: {new Date(proyecto.fechaFin).toLocaleDateString('es-ES')}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                {proyecto.participantes} participantes
-              </div>
-              <div className="text-sm text-gray-600">
-                Responsable: {proyecto.responsable}
-              </div>
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <button className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors text-sm">
-                Ver Detalles
-              </button>
-              <button className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors text-sm">
-                Editar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredProyectos.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p className="text-gray-500">No se encontraron proyectos</p>
+                <Link to={`/projects/${project.id}`}>
+                  <Button variant="outline" fullWidth size="sm">
+                    <Eye className="w-4 h-4" />
+                    Ver Detalles
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={2}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
+}
+
+/* =====================
+   PropTypes
+===================== */
+
+ProjectList.propTypes = {
+  // Si este componente recibe props, defínelas aquí
 };
 
-export default ProyectosListPage;
+export default ProjectList;

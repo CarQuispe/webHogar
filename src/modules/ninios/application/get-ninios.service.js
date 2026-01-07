@@ -7,18 +7,18 @@ export class GetNiniosService {
 
   async execute(filters = {}) {
     try {
-      console.log('🚀 [GetNiniosService] Executing with filters:', filters);
+      console.log('[GetNiniosService] Executing with filters:', filters);
       
       const ninios = await this.niniosRepository.getAll(filters);
       
-      console.log(`✅ [GetNiniosService] Retrieved ${ninios.length} ninios`);
+      console.log(` [GetNiniosService] Retrieved ${ninios.length} ninios`);
       
       return ninios;
     } catch (error) {
-      console.error('🔥 [GetNiniosService] Error:', error);
+      console.error(' [GetNiniosService] Error:', error);
       
       // En desarrollo, retornar array vacío para evitar romper la UI
-      console.warn('⚠️ [GetNiniosService] Returning empty array due to error');
+      console.warn(' [GetNiniosService] Returning empty array due to error');
       return [];
     }
   }

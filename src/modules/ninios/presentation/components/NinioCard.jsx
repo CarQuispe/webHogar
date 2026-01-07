@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Calendar, MapPin, Tag, ArrowRight, IdCard, Heart } from 'lucide-react';
-import Card from '@components/ui/Card/Card';
-import Button from '@components/ui/Button/Button';
+import{Card } from '@components/ui/Card/Card';
+import{Button }from '@components/ui/Button/Button';
 
 export const NinioCard = ({ ninio }) => {
   const navigate = useNavigate();

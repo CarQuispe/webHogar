@@ -4,7 +4,7 @@ import { NiniosRepositoryInterface } from '../domain/repositories/ninios.reposit
 import { Ninio } from '../domain/entities/ninio.entity.js';
 
 export class ApiNiniosRepository extends NiniosRepositoryInterface {
-  constructor(baseURL = 'http://localhost:3000/api') {
+  constructor(baseURL = 'https://apihogarse.onrender.com/api') {
     super();
     this.baseURL = baseURL;
   }
@@ -40,22 +40,22 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
         }
         
         const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
-        console.error(`❌ [API Error] ${url}:`, errorMessage, errorData);
+        console.error(` [API Error] ${url}:`, errorMessage, errorData);
         throw new Error(errorMessage);
       }
 
       // Para respuestas sin contenido (ej: DELETE exitoso)
       if (response.status === 204) {
-        console.log(`✅ [API] ${url}: No content response (204)`);
+        console.log(` [API] ${url}: No content response (204)`);
         return null;
       }
 
       const data = await response.json();
-      console.log(`✅ [API] ${url}: Success, response type:`, typeof data);
+      console.log(` [API] ${url}: Success, response type:`, typeof data);
       return data;
 
     } catch (error) {
-      console.error(`🔥 [API Request Failed] ${endpoint}:`, error);
+      console.error(` [API Request Failed] ${endpoint}:`, error);
       
       // Manejar errores de red específicos
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -68,7 +68,7 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
 
   async getAll(filters = {}) {
     try {
-      console.log('📋 [NiniosRepository] Getting all ninios with filters:', filters);
+      console.log(' [NiniosRepository] Getting all ninios with filters:', filters);
       
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -80,17 +80,17 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
       const queryString = queryParams.toString();
       const endpoint = `/ninios${queryString ? `?${queryString}` : ''}`;
       
-      console.log('🔍 [NiniosRepository] Fetching from endpoint:', endpoint);
+      console.log(' [NiniosRepository] Fetching from endpoint:', endpoint);
       
       const response = await this.#makeRequest(endpoint);
       
       // DEBUG: Ver estructura completa de la respuesta
-      console.log('📦 [NiniosRepository] Raw API response:', response);
-      console.log('📦 [NiniosRepository] Response type:', typeof response);
-      console.log('📦 [NiniosRepository] Is array?', Array.isArray(response));
+      console.log(' [NiniosRepository] Raw API response:', response);
+      console.log(' [NiniosRepository] Response type:', typeof response);
+      console.log(' [NiniosRepository] Is array?', Array.isArray(response));
       
       if (response === null || response === undefined) {
-        console.warn('⚠️ [NiniosRepository] Response is null or undefined');
+        console.warn(' [NiniosRepository] Response is null or undefined');
         return [];
       }
       
@@ -113,7 +113,7 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
         // Buscar la primera propiedad que sea un array
         for (const key in response) {
           if (Array.isArray(response[key])) {
-            console.log(`✅ [NiniosRepository] Found array in key "${key}" with ${response[key].length} items`);
+            console.log(` [NiniosRepository] Found array in key "${key}" with ${response[key].length} items`);
             dataArray = response[key];
             break;
           }
@@ -121,18 +121,18 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
         
         // Si no encontramos array pero response tiene propiedades como un solo objeto
         if (dataArray.length === 0 && response.id !== undefined) {
-          console.log('✅ [NiniosRepository] Response appears to be a single object, wrapping in array');
+          console.log(' [NiniosRepository] Response appears to be a single object, wrapping in array');
           dataArray = [response];
         }
       }
       
       // Validar y mapear los datos
       if (!Array.isArray(dataArray)) {
-        console.warn('⚠️ [NiniosRepository] dataArray is not an array:', dataArray);
+        console.warn(' [NiniosRepository] dataArray is not an array:', dataArray);
         return [];
       }
       
-      console.log(`📊 [NiniosRepository] Mapping ${dataArray.length} items to Ninio entities`);
+      console.log(` [NiniosRepository] Mapping ${dataArray.length} items to Ninio entities`);
       
       const ninios = dataArray.map((data, index) => {
         try {
@@ -144,38 +144,38 @@ export class ApiNiniosRepository extends NiniosRepositoryInterface {
           });
           return ninio;
         } catch (mapError) {
-          console.error(`❌ [NiniosRepository] Error mapping item at index ${index}:`, data, mapError);
+          console.error(` [NiniosRepository] Error mapping item at index ${index}:`, data, mapError);
           return null;
         }
       }).filter(item => item !== null);
       
-      console.log(`🎉 [NiniosRepository] Successfully mapped ${ninios.length} ninios`);
+      console.log(` [NiniosRepository] Successfully mapped ${ninios.length} ninios`);
       return ninios;
       
     } catch (error) {
-      console.error('🔥 [NiniosRepository] Error in getAll:', error);
+      console.error(' [NiniosRepository] Error in getAll:', error);
       
       // Para desarrollo: retornar array vacío en lugar de lanzar error
       // En producción podrías querer lanzar el error
-      console.warn('⚠️ [NiniosRepository] Returning empty array due to error');
+      console.warn(' [NiniosRepository] Returning empty array due to error');
       return [];
     }
   }
 
   async getById(id) {
     try {
-      console.log(`📋 [NiniosRepository] Getting ninio by ID: ${id}`);
+      console.log(` [NiniosRepository] Getting ninio by ID: ${id}`);
       const response = await this.#makeRequest(`/ninios/${id}`);
       
       // Manejar diferentes estructuras de respuesta
       const data = response.data || response;
       
       if (!data) {
-        console.warn(`⚠️ [NiniosRepository] No data found for ninio ID: ${id}`);
+        console.warn(` [NiniosRepository] No data found for ninio ID: ${id}`);
         return null;
       }
       
-      console.log(`✅ [NiniosRepository] Found ninio:`, { 
+      console.log(` [NiniosRepository] Found ninio:`, { 
         id: data.id, 
         nombre: data.nombre,
         ci: data.ci 

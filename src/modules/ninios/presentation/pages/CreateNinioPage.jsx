@@ -36,7 +36,6 @@ export const CreateNinioPage = () => {
         nacionalidad: formData.nacionalidad || 'Boliviana',
         estado: formData.estado || 'activo'
       };
-
       console.log(' [CreateNinioPage] Datos a enviar al backend:', ninioDataToSend);
       
       const repository = new ApiNiniosRepository();

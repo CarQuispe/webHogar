@@ -5,7 +5,7 @@ import Card from '@components/ui/Card/Card';
 import Button from '@components/ui/Button/Button';
 
 export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loading = false }) => {
-  // Estado inicial con valores por defecto
+  // Estado inicial solo con campos que existen en la BD
   const [formData, setFormData] = useState({
     ci: '',
     nombre: '',
@@ -19,11 +19,8 @@ export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loadi
     estado: 'activo',
     observaciones_ingreso: '',
     fecha_egreso: '',
-    motivo_egreso: '',
-    telefono: '',
-    email: '',
-    direccion: '',
-    responsable: ''
+    motivo_egreso: ''
+    // Removidos: telefono, email, direccion, responsable, estado_civil
   });
 
   const [errors, setErrors] = useState({});
@@ -31,9 +28,24 @@ export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loadi
   // Actualizar formulario cuando haya datos iniciales
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
+      // Solo tomar campos que existen en la BD
+      const validFields = [
+        'ci', 'nombre', 'apellido_paterno', 'apellido_materno', 
+        'sexo', 'nacionalidad', 'etnia', 'fecha_nacimiento', 
+        'fecha_ingreso', 'estado', 'observaciones_ingreso', 
+        'fecha_egreso', 'motivo_egreso'
+      ];
+      
+      const filteredData = {};
+      validFields.forEach(field => {
+        if (initialData[field] !== undefined) {
+          filteredData[field] = initialData[field];
+        }
+      });
+      
       setFormData(prev => ({
         ...prev,
-        ...initialData
+        ...filteredData
       }));
     }
   }, [initialData]);
@@ -251,7 +263,7 @@ export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loadi
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Sexo *
@@ -309,24 +321,6 @@ export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loadi
               placeholder="Ej: Quechua, Aymara"
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estado Civil
-            </label>
-            <select
-              name="estado_civil"
-              value={formData.estado_civil || 'soltero'}
-              onChange={handleChange}
-              className="input-primary"
-            >
-              <option value="soltero">Soltero</option>
-              <option value="casado">Casado</option>
-              <option value="divorciado">Divorciado</option>
-              <option value="viudo">Viudo</option>
-              <option value="union_libre">Unión Libre</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -381,66 +375,6 @@ export const NinioForm = ({ onSubmit, initialData = {}, isEditing = false, loadi
               <option value="transferido">Transferido</option>
             </select>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Responsable
-            </label>
-            <input
-              type="text"
-              name="responsable"
-              value={formData.responsable}
-              onChange={handleChange}
-              className="input-primary"
-              placeholder="Nombre del responsable"
-            />
-          </div>
-        </div>
-
-        {/* Información de Contacto */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Teléfono de Contacto
-            </label>
-            <input
-              type="tel"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              className="input-primary"
-              placeholder="Ej: 77712345"
-              pattern="[0-9]{8,15}"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="input-primary"
-              placeholder="ejemplo@email.com"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Dirección
-          </label>
-          <textarea
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            rows={2}
-            className="input-primary resize-none"
-            placeholder="Dirección completa..."
-          />
         </div>
       </div>
 

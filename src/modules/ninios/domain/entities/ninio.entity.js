@@ -1,16 +1,15 @@
 // src/modules/ninios/domain/entities/ninio.entity.js
-// src/modules/ninios/domain/entities/ninio.entity.js
 export class Ninio {
   constructor(data) {
     this.id = data.id || null;
-    this.ci = data.ci;
-    this.nombre = data.nombre;
+    this.ci = data.ci || '';
+    this.nombre = data.nombre || '';
     this.apellido_paterno = data.apellido_paterno || '';
     this.apellido_materno = data.apellido_materno || '';
     this.sexo = data.sexo || 'no especificado';
     this.nacionalidad = data.nacionalidad || 'Boliviana';
     this.etnia = data.etnia || '';
-    this.fecha_nacimiento = data.fecha_nacimiento;
+    this.fecha_nacimiento = data.fecha_nacimiento || '';
     this.fecha_ingreso = data.fecha_ingreso || new Date().toISOString().split('T')[0];
     this.estado = data.estado || 'activo';
     this.observaciones_ingreso = data.observaciones_ingreso || '';
