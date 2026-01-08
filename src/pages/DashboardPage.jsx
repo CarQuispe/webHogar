@@ -23,7 +23,7 @@ const DashboardPage = () => {
   const stats = [
     {
       title: 'Residentes Activos',
-      value: '85',
+      value: '7',
       icon: Users,
       color: 'bg-blue-500',
       trend: '+2.3%',
@@ -32,7 +32,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Personal Activo',
-      value: '48',
+      value: '4',
       icon: UserCheck,
       color: 'bg-green-500',
       trend: '+2.3%',
@@ -41,7 +41,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Reportes Pendientes',
-      value: '12',
+      value: '2',
       icon: FileText,
       color: 'bg-orange-500',
       trend: '-5%',
@@ -50,7 +50,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Proyectos Activos',
-      value: '8',
+      value: '3',
       icon: Activity,
       color: 'bg-purple-500',
       trend: '+8.1%',
@@ -60,9 +60,9 @@ const DashboardPage = () => {
   ];
 
   const residentStatus = {
-    activos: { value: 85, percentage: 83, color: 'bg-blue-500' },
-    transicion: { value: 12, percentage: 12, color: 'bg-yellow-500' },
-    egresados: { value: 5, percentage: 5, color: 'bg-green-500' },
+    activos: { value: 8, percentage: 8, color: 'bg-blue-500' },
+    transicion: { value: 2, percentage: 2, color: 'bg-yellow-500' },
+    egresados: { value: 1, percentage: 1, color: 'bg-green-500' },
   };
 
   const recentActivities = [

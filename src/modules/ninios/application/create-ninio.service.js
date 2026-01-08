@@ -1,5 +1,5 @@
 // src/modules/ninios/application/create-ninio.service.js
-// src/modules/ninios/application/create-ninio.service.js
+
 export class CreateNinioService {
   constructor(niniosRepository) {
     this.niniosRepository = niniosRepository;

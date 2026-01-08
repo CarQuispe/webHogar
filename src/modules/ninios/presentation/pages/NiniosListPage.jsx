@@ -1,5 +1,5 @@
 // src/modules/ninios/presentation/pages/NiniosListPage.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -12,8 +12,15 @@ import {
   RefreshCw,
   AlertCircle,
   Filter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileUp
 } from 'lucide-react';
+
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 import { GetNiniosService } from '../../application/get-ninios.service.js';
 import { ApiNiniosRepository } from '../../infrastructure/api.ninios.repository.js';
 import { NinioTable } from '../components/NinioTable.jsx';
@@ -22,6 +29,8 @@ import Button from '@components/ui/Button/Button';
 
 export const NiniosListPage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const [ninios, setNinios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,6 +88,273 @@ export const NiniosListPage = () => {
     loadNinios();
   }, [loadNinios]);
 
+  /* =====================================================
+     EXPORTAR PDF
+  ===================================================== */
+  const exportToPDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Título
+      doc.setFontSize(20);
+      doc.setTextColor(33, 37, 41);
+      doc.text('Listado de Residentes - Hogar de Niños', 14, 20);
+      
+      // Información del reporte
+      doc.setFontSize(10);
+      doc.setTextColor(108, 117, 125);
+      doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, 14, 30);
+      doc.text(`Total de registros: ${ninios.length}`, 14, 36);
+      
+      // Datos de la tabla
+      const tableData = ninios.map((n, index) => ([
+        index + 1,
+        `${n.nombre || ''} ${n.apellido || ''}`.trim(),
+        n.edad || 'N/A',
+        n.sexo === 'masculino' ? 'M' : (n.sexo === 'femenino' ? 'F' : 'NS'),
+        n.estado ? n.estado.charAt(0).toUpperCase() + n.estado.slice(1) : 'N/A',
+        n.nacionalidad || 'N/A'
+      ]));
+
+      doc.autoTable({
+        head: [['#', 'Nombre Completo', 'Edad', 'Sexo', 'Estado', 'Nacionalidad']],
+        body: tableData,
+        startY: 45,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [52, 152, 219],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250]
+        },
+        margin: { top: 45 },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 40 }
+        }
+      });
+
+      // Pie de página
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(108, 117, 125);
+        doc.text(
+          `Página ${i} de ${pageCount} • Sistema de Gestión de Hogar de Niños`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: 'center' }
+        );
+      }
+
+      doc.save(`residentes_hogar_ninios_${new Date().toISOString().split('T')[0]}.pdf`);
+      console.log('📄 PDF exportado exitosamente');
+    } catch (err) {
+      console.error('❌ Error al exportar PDF:', err);
+      setError('Error al generar el archivo PDF');
+    }
+  };
+
+  /* =====================================================
+     EXPORTAR EXCEL
+  ===================================================== */
+  const exportToExcel = () => {
+    try {
+      // Preparar datos para Excel
+      const excelData = ninios.map(n => ({
+        'Nombre': n.nombre || '',
+        'Apellido': n.apellido || '',
+        'Nombre Completo': `${n.nombre || ''} ${n.apellido || ''}`.trim(),
+        'Edad': n.edad || '',
+        'Sexo': n.sexo ? (n.sexo === 'masculino' ? 'Masculino' : 
+                         n.sexo === 'femenino' ? 'Femenino' : 'No especificado') : '',
+        'Estado': n.estado ? n.estado.charAt(0).toUpperCase() + n.estado.slice(1) : '',
+        'Nacionalidad': n.nacionalidad || '',
+        'Fecha de Nacimiento': n.fechaNacimiento || '',
+        'Documento Identidad': n.documentoIdentidad || '',
+        'Fecha Ingreso': n.fechaIngreso || '',
+        'Observaciones': n.observaciones || ''
+      }));
+
+      // Crear hoja de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Ajustar anchos de columnas
+      const colWidths = [
+        { wch: 20 }, // Nombre
+        { wch: 20 }, // Apellido
+        { wch: 25 }, // Nombre Completo
+        { wch: 10 }, // Edad
+        { wch: 15 }, // Sexo
+        { wch: 15 }, // Estado
+        { wch: 20 }, // Nacionalidad
+        { wch: 15 }, // Fecha Nacimiento
+        { wch: 20 }, // Documento
+        { wch: 15 }, // Fecha Ingreso
+        { wch: 40 }  // Observaciones
+      ];
+      worksheet['!cols'] = colWidths;
+
+      // Crear libro de trabajo
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Residentes');
+
+      // Agregar hoja de estadísticas
+      const statsSheet = XLSX.utils.aoa_to_sheet([
+        ['ESTADÍSTICAS - HOGAR DE NIÑOS'],
+        [''],
+        ['Fecha de generación:', new Date().toLocaleString('es-ES')],
+        [''],
+        ['TOTAL RESIDENTES:', stats.total],
+        ['Activos:', stats.activos],
+        ['En Transición:', stats.enTransicion],
+        ['Egresados:', stats.egresados],
+        [''],
+        ['Distribución por Sexo:'],
+        ['Masculino:', ninios.filter(n => n.sexo === 'masculino').length],
+        ['Femenino:', ninios.filter(n => n.sexo === 'femenino').length],
+        ['No especificado:', ninios.filter(n => !n.sexo || n.sexo === 'no especificado').length]
+      ]);
+      XLSX.utils.book_append_sheet(workbook, statsSheet, 'Estadísticas');
+
+      // Generar archivo
+      const excelBuffer = XLSX.write(workbook, { 
+        bookType: 'xlsx', 
+        type: 'array',
+        bookSST: false
+      });
+      
+      const blob = new Blob([excelBuffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      saveAs(blob, `residentes_hogar_ninios_${new Date().toISOString().split('T')[0]}.xlsx`);
+      console.log('📊 Excel exportado exitosamente');
+    } catch (err) {
+      console.error('❌ Error al exportar Excel:', err);
+      setError('Error al generar el archivo Excel');
+    }
+  };
+
+  /* =====================================================
+     IMPORTAR EXCEL
+  ===================================================== */
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv'
+    ];
+    
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/)) {
+      setError('Formato de archivo no válido. Use .xlsx, .xls o .csv');
+      return;
+    }
+
+    // Limpiar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    setLoading(true);
+    
+    const reader = new FileReader();
+    
+    reader.onload = (evt) => {
+      try {
+        const data = evt.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const importedData = XLSX.utils.sheet_to_json(firstSheet);
+
+        console.log('📥 Datos importados del Excel:', importedData);
+
+        // Validar estructura básica
+        if (importedData.length === 0) {
+          setError('El archivo está vacío o no contiene datos válidos');
+          setLoading(false);
+          return;
+        }
+
+        // Mapear columnas (ajusta según tu estructura)
+        const mappedData = importedData.map((row, index) => ({
+          id: `imported-${index + 1}`,
+          nombre: row.Nombre || row.nombre || '',
+          apellido: row.Apellido || row.apellido || '',
+          edad: row.Edad || row.edad,
+          sexo: (row.Sexo || row.sexo || '').toLowerCase(),
+          estado: (row.Estado || row.estado || 'activo').toLowerCase(),
+          nacionalidad: row.Nacionalidad || row.nacionalidad || '',
+          documentoIdentidad: row['Documento Identidad'] || row.documentoIdentidad || '',
+          fechaNacimiento: row['Fecha de Nacimiento'] || row.fechaNacimiento,
+          fechaIngreso: row['Fecha Ingreso'] || row.fechaIngreso || new Date().toISOString().split('T')[0],
+          observaciones: row.Observaciones || row.observaciones || 'Importado desde Excel'
+        }));
+
+        console.log('✅ Datos mapeados para importar:', mappedData);
+
+        // Aquí deberías implementar el envío al backend
+        // Ejemplo: await importNiniosService.execute(mappedData);
+
+        // Por ahora, mostramos un mensaje de éxito
+        alert(`✅ Se importaron ${mappedData.length} registros exitosamente.\n\nNota: Esta es una vista previa. Para guardar los datos, implementa la conexión con el backend.`);
+        
+        // Actualizar la lista
+        loadNinios();
+
+      } catch (err) {
+        console.error('❌ Error procesando archivo:', err);
+        setError('Error al procesar el archivo. Verifique el formato.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      setError('Error al leer el archivo');
+      setLoading(false);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  /* =====================================================
+     HANDLERS DE EXPORTACIÓN/IMPORTACIÓN
+  ===================================================== */
+  const handleExport = () => {
+    if (ninios.length === 0) {
+      setError('No hay datos para exportar');
+      return;
+    }
+
+    // Exportar ambos formatos
+    exportToPDF();
+    setTimeout(exportToExcel, 500); // Pequeño delay para evitar conflictos
+  };
+
+  const handleImport = () => {
+    fileInputRef.current.click();
+  };
+
+  /* =====================================================
+     HANDLERS EXISTENTES
+  ===================================================== */
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -101,16 +377,6 @@ export const NiniosListPage = () => {
 
   const handleCreateNinio = () => {
     navigate('/ninios/create');
-  };
-
-  const handleExport = () => {
-    console.log('Exportando datos...');
-    // Implementar exportación
-  };
-
-  const handleImport = () => {
-    console.log('Importando datos...');
-    // Implementar importación
   };
 
   const handleDeleteNinio = async (id) => {
@@ -146,6 +412,15 @@ export const NiniosListPage = () => {
 
   return (
     <div className="min-h-screen bg-secondary animate-fade-in">
+      {/* Input oculto para importar archivos */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".xlsx,.xls,.csv"
+        hidden
+        onChange={handleImportFile}
+      />
+
       <div className="container mx-auto py-8">
         {/* Header Principal */}
         <div className="mb-8">
@@ -164,16 +439,17 @@ export const NiniosListPage = () => {
                 size="medium"
                 onClick={handleExport}
                 icon={<Download className="w-4 h-4" />}
+                disabled={ninios.length === 0}
               >
-                Exportar
+                Exportar (PDF/Excel)
               </Button>
               <Button
                 variant="outline"
                 size="medium"
                 onClick={handleImport}
-                icon={<FileSpreadsheet className="w-4 h-4" />}
+                icon={<FileUp className="w-4 h-4" />}
               >
-                Importar
+                Importar desde Excel
               </Button>
               <Button
                 variant="primary"
@@ -442,6 +718,7 @@ export const NiniosListPage = () => {
                     size="small"
                     onClick={handleExport}
                     icon={<Download className="w-3 h-3" />}
+                    disabled={ninios.length === 0}
                   >
                     Exportar lista
                   </Button>
@@ -470,7 +747,7 @@ export const NiniosListPage = () => {
             <span>Total registros: {stats.total}</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            Todos los datos están protegidos y encriptados según las normas de protección infantil
+            Exporta datos en PDF/Excel • Importa desde Excel • Todos los datos están protegidos
           </p>
         </div>
       </div>
