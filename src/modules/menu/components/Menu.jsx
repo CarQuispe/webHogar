@@ -19,7 +19,7 @@ import {
   Menu as MenuIcon,
   X
 } from 'lucide-react';
-import "../styles/menu.css";
+import "./Menu.css";
 
 
 
