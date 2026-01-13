@@ -1,12 +1,12 @@
 // src/modules/ninios/presentation/pages/CreateNinioPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreateNinioService } from '../../application/create-ninio.service.js';
-import { ApiNiniosRepository } from '../../infrastructure/api.ninios.repository.js';
+
+import{CreateNinioService}from'../../application/create-ninio.service.js';
+import{ApiNiniosRepository}from'../../infrastructure/api.ninios.repository.js';
+
 import { NinioForm } from '../components/NinioForm.jsx';
-import { ArrowLeft, UserPlus, CheckCircle } from 'lucide-react';
-import Card from '@components/ui/Card/Card';
-import Button from '@components/ui/Button/Button';
+import "./CreateNinioPage.css";
 
 export const CreateNinioPage = () => {
   const navigate = useNavigate();
@@ -36,22 +36,16 @@ export const CreateNinioPage = () => {
         nacionalidad: formData.nacionalidad || 'Boliviana',
         estado: formData.estado || 'activo'
       };
-      console.log(' [CreateNinioPage] Datos a enviar al backend:', ninioDataToSend);
       
       const repository = new ApiNiniosRepository();
       const createService = new CreateNinioService(repository);
       
-      console.log(' [CreateNinioPage] Ejecutando servicio de creación...');
       const result = await createService.execute(ninioDataToSend);
-      
-      console.log(' [CreateNinioPage] Resultado del servicio:', result);
       
       if (result && result.success) {
         // Éxito - Niño creado
         setSuccess(true);
         setCreatedNinio(result.data);
-        
-        console.log(' [CreateNinioPage] Niño creado exitosamente:', result.data);
         
         // Mostrar alerta temporal
         setTimeout(() => {
@@ -68,7 +62,6 @@ export const CreateNinioPage = () => {
     } catch (error) {
       console.error(' [CreateNinioPage] Error al crear niño:', error);
       
-      // Manejar diferentes tipos de errores
       let errorMessage = 'Error al registrar el niño';
       
       if (error.message) {
@@ -87,132 +80,94 @@ export const CreateNinioPage = () => {
     setError('');
   };
 
+  const handleCancel = () => {
+    navigate('/ninios');
+  };
+
   return (
-    <div className="min-h-screen bg-secondary py-8 animate-fade-in">
-      <div className="container mx-auto">
-        {/* Header */}
-        <Card 
-          className="mb-6"
-          padding="large"
-          backgroundColor="bg-primary"
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="small"
-                onClick={() => navigate('/ninios')}
-                icon={<ArrowLeft className="w-4 h-4" />}
-              >
-                Volver a la lista
-              </Button>
+    <div className="create-ninio-page">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Registrar Nuevo Niño</h1>
+          <p className="page-subtitle">
+            Completa todos los campos para registrar un nuevo residente
+          </p>
+        </div>
+        
+        <div className="page-actions">
+          <button className="btn-secondary" onClick={handleCancel}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      {/* Mensajes de error */}
+      {error && (
+        <div className="alert-error animate-slide-down">
+          <div className="alert-content">
+            <svg className="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <h3 className="alert-title">Error al registrar</h3>
+              <p className="alert-message">{error}</p>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-primary-blue to-primary-blue-dark rounded-xl shadow-md">
-                <UserPlus className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  Registrar Nuevo Niño
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Completa todos los campos para registrar un nuevo residente
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje de éxito */}
+      {success && createdNinio && (
+        <div className="alert-success animate-slide-down">
+          <div className="alert-content">
+            <svg className="alert-icon-success" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <h3 className="alert-title">¡Niño registrado exitosamente!</h3>
+              <div className="success-details">
+                <p className="success-name">
+                  {createdNinio.nombre} {createdNinio.apellido_paterno} {createdNinio.apellido_materno}
                 </p>
+                {createdNinio.ci && (
+                  <p className="success-info">
+                    CI: {createdNinio.ci}
+                  </p>
+                )}
+                <p className="success-redirect">
+                  Serás redirigido a la lista en unos segundos...
+                </p>
+              </div>
+              <div className="success-actions">
+                <button className="btn-outline" onClick={() => navigate(`/ninios/${createdNinio.id}`)}>
+                  Ver detalles
+                </button>
+                <button className="btn-ghost" onClick={handleCreateAnother}>
+                  Registrar otro niño
+                </button>
               </div>
             </div>
           </div>
-        </Card>
+        </div>
+      )}
 
-        {/* Mensajes de error */}
-        {error && (
-          <Card 
-            className="mb-6 animate-slide-down"
-            padding="medium"
-          >
-            <div className="alert-error">
-              <div className="flex items-start gap-3">
-                <svg className="h-5 w-5 text-error mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Error al registrar</h3>
-                  <div className="mt-1 text-sm text-gray-700">
-                    <p>{error}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Mensaje de éxito */}
-        {success && createdNinio && (
-          <Card 
-            className="mb-6 animate-slide-down"
-            padding="large"
-            backgroundColor="bg-gradient-to-r from-green-50 to-emerald-50"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <CheckCircle className="h-10 w-10 text-success" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  ¡Niño registrado exitosamente!
-                </h3>
-                <div className="mt-2 space-y-1">
-                  <p className="text-gray-700 font-medium">
-                    {createdNinio.nombre} {createdNinio.apellido_paterno} {createdNinio.apellido_materno}
-                  </p>
-                  {createdNinio.ci && (
-                    <p className="text-sm text-gray-600">
-                      CI: {createdNinio.ci}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-600 mt-2">
-                    Serás redirigido a la lista en unos segundos...
-                  </p>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => navigate(`/ninios/${createdNinio.id}`)}
-                  >
-                    Ver detalles
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="small"
-                    onClick={handleCreateAnother}
-                  >
-                    Registrar otro niño
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Formulario (solo mostrar si no hay éxito) */}
-        {!success && (
-          <Card
-            title="Información del Nuevo Residente"
-            subtitle="Complete todos los campos obligatorios (*)"
-            padding="large"
-            hoverable={false}
-            shadow="lg"
-          >
-            <div className="pt-2">
-              <NinioForm 
-                onSubmit={handleSubmit}
-                loading={loading}
-              />
-            </div>
-          </Card>
-        )}
-      </div>
+      {/* Formulario (solo mostrar si no hay éxito) */}
+      {!success && (
+        <div className="form-container card">
+          <div className="form-header">
+            <h2 className="form-title">Información del Nuevo Residente</h2>
+            <p className="form-subtitle">Complete todos los campos obligatorios (*)</p>
+          </div>
+          
+          <div className="form-content">
+            <NinioForm 
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

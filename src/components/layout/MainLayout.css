@@ -1,0 +1,38 @@
+/* Área principal */
+.main-content {
+  flex: 1;
+  margin-left: 280px; /* sidebar */
+  padding: 24px;
+  overflow-y: auto;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center; /* CENTRA horizontalmente */
+  align-items: flex-start; /* Alinea al inicio verticalmente */
+}
+
+/* CONTENEDOR DE PÁGINAS */
+.page-container {
+  width: 100%;
+  max-width: 1200px; /* 👈 CLAVE */
+  display: flex;
+  justify-content: center; /* 👈 Añade esto */
+}
+
+/* Sidebar cerrado */
+.sidebar-closed ~ .main-content {
+  margin-left: 70px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0 !important;
+    padding-top: 80px;
+    justify-content: flex-start; /* Cambia en móvil si es necesario */
+  }
+
+  .page-container {
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+}

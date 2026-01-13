@@ -108,8 +108,7 @@ export const AuthProvider = ({ children }) => {
       console.log('AuthContext: Resultado del registro:', result);
       
       if (result && result.success) {
-        // No hacemos login automático después del registro
-        // El usuario debe ir a login manualmente
+        
         
         return { 
           success: true, 
@@ -134,18 +133,18 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       setLoading(true);
-      // Ejecutar logout service si existe
+     
       if (logoutService.execute) {
         await logoutService.execute();
       }
     } catch (error) {
       console.error('AuthContext: Error en logout:', error);
     } finally {
-      // Limpiar storage
+  
       userService.clearUser();
       tokenService.clearToken();
       
-      // Limpiar estado
+     
       setUser(null);
       setIsAuthenticated(false);
       setError(null);

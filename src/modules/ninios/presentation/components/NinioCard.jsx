@@ -1,50 +1,40 @@
-// src/modules/ninios/presentation/components/NinioCard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Calendar, MapPin, Tag, ArrowRight, IdCard, Heart } from 'lucide-react';
-import{Card } from '@components/ui/Card/Card';
-import{Button }from '@components/ui/Button/Button';
+import { Card } from '@components/ui/Card/Card';
+import { Button } from '@components/ui/Button/Button';
+import "./NinioCard.css"
 
 export const NinioCard = ({ ninio }) => {
   const navigate = useNavigate();
   
-  // Obtener color del estado según sistema de diseño
+  // Obtener color del estado
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case 'activo': 
         return { 
-          bg: 'bg-success/10', 
-          text: 'text-success', 
-          border: 'border-success/20',
+          className: 'estado-activo',
           icon: '💚'
         };
       case 'en_transicion':
       case 'en transicion':
         return { 
-          bg: 'bg-warning/10', 
-          text: 'text-warning', 
-          border: 'border-warning/20',
+          className: 'estado-transicion',
           icon: '🔄'
         };
       case 'egresado':
         return { 
-          bg: 'bg-gray-100', 
-          text: 'text-gray-700', 
-          border: 'border-gray-200',
+          className: 'estado-egresado',
           icon: '👋'
         };
       case 'inactivo':
         return { 
-          bg: 'bg-error/10', 
-          text: 'text-error', 
-          border: 'border-error/20',
+          className: 'estado-inactivo',
           icon: '⏸️'
         };
       default:
         return { 
-          bg: 'bg-gray-100', 
-          text: 'text-gray-700', 
-          border: 'border-gray-200',
+          className: 'estado-default',
           icon: '❓'
         };
     }
@@ -74,22 +64,16 @@ export const NinioCard = ({ ninio }) => {
     });
   };
 
-  // Obtener iniciales para avatar
+  // Obtener iniciales
   const getInitials = () => {
     const first = ninio.nombre ? ninio.nombre.charAt(0).toUpperCase() : '?';
     const last = ninio.apellido_paterno ? ninio.apellido_paterno.charAt(0).toUpperCase() : '?';
     return `${first}${last}`;
   };
 
-  // Obtener color del avatar basado en ID o nombre
+  // Obtener color del avatar
   const getAvatarColor = () => {
-    const colors = [
-      'from-primary-blue to-primary-blue-dark',
-      'from-secondary-green to-secondary-green-dark',
-      'from-accent-orange to-accent-orange-dark',
-      'from-purple-500 to-indigo-500',
-      'from-pink-500 to-rose-500'
-    ];
+    const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
     const hash = ninio.id?.toString()?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
     return colors[hash % colors.length];
   };
@@ -100,136 +84,130 @@ export const NinioCard = ({ ninio }) => {
 
   return (
     <Card
-      className="group cursor-pointer hover-lift transition-all duration-300 overflow-hidden"
+      className={`ninio-card ${avatarColor}`}
       padding="none"
       hoverable={true}
       onClick={() => navigate(`/ninios/${ninio.id}`)}
     >
-      {/* Header con avatar y estado */}
-      <div className="relative">
-        {/* Gradiente de fondo */}
-        <div className={`absolute inset-0 bg-gradient-to-r ${avatarColor} opacity-5`}></div>
+      {/* Header */}
+      <div className="ninio-card-header">
+        <div className="ninio-card-bg-gradient"></div>
         
-        <div className="relative p-6">
-          <div className="flex items-start justify-between">
-            {/* Avatar y Nombre */}
-            <div className="flex items-center gap-4">
-              <div className={`relative w-16 h-16 rounded-xl bg-gradient-to-br ${avatarColor} shadow-lg flex items-center justify-center text-white`}>
-                <span className="text-xl font-bold">{getInitials()}</span>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full border-2 border-white flex items-center justify-center">
-                  <Heart className="w-3 h-3 text-primary-blue" />
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-blue transition-colors">
-                  {ninio.nombre} {ninio.apellido_paterno}
-                </h3>
-                <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                  <IdCard className="w-3 h-3" />
-                  {ninio.ci || 'Sin CI'}
-                </p>
+        <div className="ninio-card-header-content">
+          <div className="ninio-card-avatar-section">
+            {/* Avatar */}
+            <div className={`ninio-card-avatar ${avatarColor}`}>
+              <span className="avatar-initials">{getInitials()}</span>
+              <div className="avatar-badge">
+                <Heart className="heart-icon" />
               </div>
             </div>
             
-            {/* Badge de Estado */}
-            <div className={`px-3 py-1.5 rounded-full text-xs font-medium border ${estadoConfig.border} ${estadoConfig.bg}`}>
-              <span className={`flex items-center gap-1 ${estadoConfig.text}`}>
-                <span className="text-xs">{estadoConfig.icon}</span>
-                <span className="capitalize">{ninio.estado || 'Desconocido'}</span>
-              </span>
+            {/* Nombre */}
+            <div className="ninio-card-name">
+              <h3 className="ninio-card-name-title">
+                {ninio.nombre} {ninio.apellido_paterno}
+              </h3>
+              <p className="ninio-card-ci">
+                <IdCard className="ci-icon" />
+                {ninio.ci || 'Sin CI'}
+              </p>
             </div>
+          </div>
+          
+          {/* Badge de Estado */}
+          <div className={`estado-badge ${estadoConfig.className}`}>
+            <span className="estado-content">
+              <span className="estado-icon">{estadoConfig.icon}</span>
+              <span className="estado-text">{ninio.estado || 'Desconocido'}</span>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Detalles Informativos */}
-      <div className="px-6 pb-6">
+      {/* Detalles */}
+      <div className="ninio-card-details">
         {/* Grid de información */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="info-grid">
           {/* Edad */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-primary-blue/10 rounded">
-                <User className="w-3 h-3 text-primary-blue" />
+          <div className="info-item">
+            <div className="info-header">
+              <div className="info-icon bg-primary">
+                <User className="info-svg primary" />
               </div>
-              <span className="text-xs font-medium text-gray-500">Edad</span>
+              <span className="info-label">Edad</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="info-value">
               {edad ? `${edad} años` : 'N/A'}
             </p>
           </div>
           
           {/* Sexo */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-secondary-green/10 rounded">
-                <User className="w-3 h-3 text-secondary-green" />
+          <div className="info-item">
+            <div className="info-header">
+              <div className="info-icon bg-secondary">
+                <User className="info-svg secondary" />
               </div>
-              <span className="text-xs font-medium text-gray-500">Sexo</span>
+              <span className="info-label">Sexo</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900 capitalize">
+            <p className="info-value">
               {ninio.sexo || 'No especificado'}
             </p>
           </div>
           
           {/* Nacionalidad */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-accent-orange/10 rounded">
-                <MapPin className="w-3 h-3 text-accent-orange" />
+          <div className="info-item">
+            <div className="info-header">
+              <div className="info-icon bg-accent">
+                <MapPin className="info-svg accent" />
               </div>
-              <span className="text-xs font-medium text-gray-500">Nacionalidad</span>
+              <span className="info-label">Nacionalidad</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="info-value">
               {ninio.nacionalidad || 'No especificada'}
             </p>
           </div>
           
           {/* Etnia */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-purple-500/10 rounded">
-                <Tag className="w-3 h-3 text-purple-500" />
+          <div className="info-item">
+            <div className="info-header">
+              <div className="info-icon bg-purple">
+                <Tag className="info-svg purple" />
               </div>
-              <span className="text-xs font-medium text-gray-500">Etnia</span>
+              <span className="info-label">Etnia</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="info-value">
               {ninio.etnia || 'No especificada'}
             </p>
           </div>
         </div>
 
-        {/* Fecha de ingreso */}
-        <div className="pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Fecha de Ingreso</p>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <p className="text-sm font-medium text-gray-900">
-                  {formatDate(ninio.fecha_ingreso)}
-                </p>
-              </div>
+        {/* Fechas */}
+        <div className="dates-section">
+          <div className="date-item">
+            <p className="date-label">Fecha de Ingreso</p>
+            <div className="date-content">
+              <Calendar className="date-icon" />
+              <p className="date-value">{formatDate(ninio.fecha_ingreso)}</p>
             </div>
-            
-            {ninio.fecha_egreso && (
-              <div className="text-right">
-                <p className="text-xs text-gray-500 mb-1">Fecha de Egreso</p>
-                <p className="text-sm font-medium text-gray-700">
-                  {formatDate(ninio.fecha_egreso)}
-                </p>
-              </div>
-            )}
           </div>
+          
+          {ninio.fecha_egreso && (
+            <div className="date-item">
+              <p className="date-label">Fecha de Egreso</p>
+              <p className="date-value-egreso">
+                {formatDate(ninio.fecha_egreso)}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Footer con acciones */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            ID: <span className="font-mono font-medium">{ninio.id}</span>
+      {/* Footer */}
+      <div className="ninio-card-footer">
+        <div className="footer-content">
+          <div className="ninio-id">
+            ID: <span className="id-number">{ninio.id}</span>
           </div>
           <Button
             variant="ghost"
@@ -238,8 +216,8 @@ export const NinioCard = ({ ninio }) => {
               e.stopPropagation();
               navigate(`/ninios/${ninio.id}`);
             }}
-            icon={<ArrowRight className="w-3 h-3" />}
-            className="group-hover:bg-primary-blue/10 group-hover:text-primary-blue"
+            icon={<ArrowRight className="arrow-icon" />}
+            className="details-button"
           >
             Ver detalles
           </Button>

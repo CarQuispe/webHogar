@@ -1,156 +1,97 @@
-// src/pages/routes/AppRoutes.jsx
-
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext.jsx';
-import PrivateRoute from './PrivateRoute.jsx';
-import PublicRoute from './PublicRoute.jsx';
-import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from '../../components/layout/MainLayout.jsx';
+import ProtectedRoute from './ProtectedRoute.jsx';
 
-// ======================
-// PÁGINAS PÚBLICAS (Lazy Loading)
-// ======================
+// Loading
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+);
 
+// Públicas
 const HomePage = lazy(() => import('../HomePage.jsx'));
+const LoginPage = lazy(() => import('../../modules/auth/presentation/pages/LoginPage.jsx'));
 const NotFoundPage = lazy(() => import('../NotFoundPage.jsx'));
 
-// Módulo Auth
-const LoginPage = lazy(() => import('../../modules/auth/presentation/pages/LoginPage.jsx'));
-const RegisterPage = lazy(() => import('../../modules/auth/presentation/pages/RegisterPage.jsx'));
-
-// ======================
-// PÁGINAS PRIVADAS (Lazy Loading)
-// ======================
-
-// Dashboard
+// Privadas - Dashboard
 const DashboardPage = lazy(() => import('../../modules/dashboard/presentation/pages/DashboardPage.jsx'));
 
-// Módulo de Niños
+// Módulo Niños
 const NiniosListPage = lazy(() => import('../../modules/ninios/presentation/pages/NiniosListPage.jsx'));
-const NinioDetailPage = lazy(() => import('../../modules/ninios/presentation/pages/NinioDetailPage.jsx'));
 const CreateNinioPage = lazy(() => import('../../modules/ninios/presentation/pages/CreateNinioPage.jsx'));
+const NinioDetailPage = lazy(() => import('../../modules/ninios/presentation/pages/NinioDetailPage.jsx'));
 
-// Módulo de Proyectos
-const ProyectosListPage = lazy(() => import('../../modules/proyectos/presentation/proyectosListPage.jsx'));
-const ProyectosPage = lazy(() => import('../../modules/proyectos/pages/proyectosPage.jsx'));
+// Módulo Proyectos
+const ProyectosPage = lazy(() => import('../../modules/proyectos/presentation/ProyectosPage.jsx'));
+const ProyectosListPage = lazy(() => import('../../modules/proyectos/presentation/ProyectosListPage.jsx'));
+const ProyectoDetailPage = lazy(() => import('../../modules/proyectos/presentation/ProyectoDetailPage.jsx'));
+const CreateProyectoPage = lazy(() => import('../../modules/proyectos/presentation/CreateProyectoPage.jsx'));
 
-// Módulo de SEDEPOS
-const SedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposListPage.jsx'));
-const SedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposPage.jsx'));
+// Módulo SEDEPOS
+const SedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/SedeposPage.jsx'));
+const SedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/SedeposListPage.jsx'));
+const CreateSedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/CreateSedeposPage.jsx'));
 
-// ======================
-// COMPONENTE DE RUTAS
-// ======================
-const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
+// Módulo Usuarios
+const UsuariosPage = lazy(() => import('../../modules/usuarios/presentation/pages/UsuariosPage.jsx'));
+const UsuariosListPage = lazy(() => import('../../modules/usuarios/presentation/pages/UsuariosListPage.jsx'));
+const UsuarioCreatePage = lazy(() => import('../../modules/usuarios/presentation/pages/UsuarioCreatePage.jsx'));
+const UsuarioEditPage = lazy(() => import('../../modules/usuarios/presentation/pages/UsuarioEditPage.jsx'));
+const PermisosPage = lazy(() => import('../../modules/usuarios/presentation/pages/PermisosPage.jsx'));
 
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
-  }
+// Módulo Permisos
+const PermisosComponent = lazy(() => import('../../modules/Permisos/components/Permisos.jsx'));
 
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Routes>
-        {/* ===== RUTAS PÚBLICAS ===== */}
-        <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-        
-        {/* ===== RUTAS PRIVADAS ===== */}
-        
-        {/* Dashboard */}
-        <Route path="/dashboard" element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        } />
-        
-        {/* Rutas de Niños */}
-        <Route path="/ninios" element={
-          <PrivateRoute>
-            <NiniosListPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/ninios/create" element={
-          <PrivateRoute>
-            <CreateNinioPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/ninios/:id" element={
-          <PrivateRoute>
-            <NinioDetailPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/ninios/edit/:id" element={
-          <PrivateRoute>
-            <CreateNinioPage />
-          </PrivateRoute>
-        } />
-        
-        {/* Rutas de Proyectos */}
-        <Route path="/proyectos" element={
-          <PrivateRoute>
-            <ProyectosListPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/proyectos/create" element={
-          <PrivateRoute>
-            <ProyectosPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/proyectos/:id" element={
-          <PrivateRoute>
-            <ProyectosPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/proyectos/edit/:id" element={
-          <PrivateRoute>
-            <ProyectosPage />
-          </PrivateRoute>
-        } />
-        
-        {/* Rutas de SEDEPOS */}
-        <Route path="/sedepos" element={
-          <PrivateRoute>
-            <SedeposListPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/sedepos/create" element={
-          <PrivateRoute>
-            <SedeposPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/sedepos/:id" element={
-          <PrivateRoute>
-            <SedeposPage />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/sedepos/edit/:id" element={
-          <PrivateRoute>
-            <SedeposPage />
-          </PrivateRoute>
-        } />
-        
-        {/* ===== RUTAS ESPECIALES ===== */}
-        {/* Redirección después de login */}
-        <Route path="/auth-redirect" element={
-          isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
-        } />
-        
-        {/* Redirección para rutas no encontradas */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
-  );
-};
+const AppRoutes = () => (
+  <Suspense fallback={<LoadingSpinner />}>
+    <Routes>
+      {/* Públicas */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Protegidas */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          
+          {/* Módulo Niños */}
+          <Route path="/ninios" element={<NiniosListPage />} />
+          <Route path="/ninios/crear" element={<CreateNinioPage />} />
+          <Route path="/ninios/editar/:id" element={<CreateNinioPage />} />
+          <Route path="/ninios/:id" element={<NinioDetailPage />} />
+          
+          {/* Módulo Proyectos */}
+          <Route path="/proyectos" element={<ProyectosPage />} />
+          <Route path="/proyectos/lista" element={<ProyectosListPage />} />
+          <Route path="/proyectos/crear" element={<CreateProyectoPage />} />
+          <Route path="/proyectos/editar/:id" element={<CreateProyectoPage />} />
+          <Route path="/proyectos/:id" element={<ProyectoDetailPage />} />
+          
+          {/* Módulo SEDEPOS */}
+          <Route path="/sedepos" element={<SedeposPage />} />
+          <Route path="/sedepos/lista" element={<SedeposListPage />} />
+          <Route path="/sedepos/nuevo" element={<CreateSedeposPage />} />
+          <Route path="/sedepos/editar/:id" element={<CreateSedeposPage />} />
+          
+          {/* Módulo Usuarios */}
+          <Route path="/usuarios" element={<UsuariosPage />} />
+          <Route path="/usuarios/lista" element={<UsuariosListPage />} />
+          <Route path="/usuarios/crear" element={<UsuarioCreatePage />} />
+          <Route path="/usuarios/editar/:id" element={<UsuarioEditPage />} />
+          <Route path="/usuarios/permisos" element={<PermisosPage />} />
+          
+          {/* Módulo Permisos */}
+          <Route path="/permisos" element={<PermisosComponent />} />
+        </Route>
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  </Suspense>
+);
 
 export default AppRoutes;

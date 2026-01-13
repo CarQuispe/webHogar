@@ -1,4 +1,4 @@
-// src/modules/ninios/application/get-ninios.service.js
+
 // src/modules/ninios/application/get-ninios.service.js
 export class GetNiniosService {
   constructor(niniosRepository) {

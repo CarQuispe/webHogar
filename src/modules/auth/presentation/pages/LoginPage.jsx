@@ -184,54 +184,7 @@ export const LoginPage = () => {
           paddingTop: '24px',
           borderTop: '1px solid var(--border-color)'
         }}>
-          <p style={{ 
-            color: 'var(--text-secondary)', 
-            fontSize: '0.875rem',
-            marginBottom: '8px'
-          }}>
-            ¿No tienes una cuenta?
-          </p>
-          <Link
-            to="/register"
-            style={{
-              color: 'var(--primary-blue)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              fontSize: '0.9rem',
-              display: 'inline-block',
-              padding: '8px 16px',
-              border: '1px solid var(--primary-blue)',
-              borderRadius: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--primary-blue)';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--primary-blue)';
-            }}
-          >
-            Crear cuenta nueva
-          </Link>
-        </div>
-
-        {/* Link a Home */}
-        <div style={{ 
-          marginTop: '16px', 
-          textAlign: 'center' 
-        }}>
-          <Link
-            to="/"
-            style={{
-              color: 'var(--text-tertiary)',
-              fontSize: '0.8rem',
-              textDecoration: 'none'
-            }}
-          >
-            ← Volver al inicio
-          </Link>
+      
         </div>
       </div>
     </div>

@@ -1,35 +1,48 @@
 // src/modules/ninios/presentation/components/NinioTable.jsx
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Eye, MoreVertical } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
+import './NinioTable.css';
 
 export const NinioTable = ({ ninios = [], onDelete, loading }) => {
   const navigate = useNavigate();
 
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
-      case 'activo': return 'bg-green-100 text-green-800';
+      case 'activo': return 'estado-activo';
       case 'en_transicion': 
       case 'en transicion': 
-        return 'bg-yellow-100 text-yellow-800';
-      case 'egresado': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'en tran': // CORRECCIÓN: Añadí este caso
+        return 'estado-transicion';
+      case 'egresado': 
+      case 'egre': // CORRECCIÓN: Añadí este caso
+        return 'estado-egresado';
+      default: return 'estado-default';
     }
   };
 
   const getEstadoText = (estado) => {
     switch (estado?.toLowerCase()) {
-      case 'activo': return 'Activo';
+      case 'activo': 
+      case 'acti': // CORRECCIÓN: Añadí este caso
+        return 'Activo';
       case 'en_transicion': 
       case 'en transicion': 
+      case 'en tran': // CORRECCIÓN: Añadí este caso
         return 'En Transición';
-      case 'egresado': return 'Egresado';
+      case 'egresado': 
+      case 'egre': // CORRECCIÓN: Añadí este caso
+        return 'Egresado';
       default: return estado || 'No especificado';
     }
   };
 
-  const calcularEdad = (fechaNacimiento) => {
+  const calcularEdad = (fechaNacimiento, edadTexto) => {
+    // Si ya viene la edad en texto, la usamos
+    if (edadTexto && typeof edadTexto === 'string') {
+      return edadTexto.includes('Años') ? edadTexto : `${edadTexto} años`;
+    }
+    
     if (!fechaNacimiento) return 'N/A';
     try {
       const birthDate = new Date(fechaNacimiento);
@@ -55,7 +68,10 @@ export const NinioTable = ({ ninios = [], onDelete, loading }) => {
   };
 
   const getInitials = (nombre = '', apellido = '') => {
-    return (nombre.charAt(0) + (apellido?.charAt(0) || '')).toUpperCase();
+    if (!nombre) return 'NN';
+    const first = nombre.charAt(0).toUpperCase();
+    const second = apellido?.charAt(0)?.toUpperCase() || '';
+    return first + second;
   };
 
   const handleDelete = async (id, e) => {
@@ -67,114 +83,115 @@ export const NinioTable = ({ ninios = [], onDelete, loading }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="table-loading">
+        <div className="loading-spinner"></div>
       </div>
     );
   }
 
   if (!ninios || ninios.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-400 mb-4">📋</div>
-        <p className="text-gray-500">No hay niños registrados</p>
+      <div className="table-empty">
+        <div className="empty-icon">📋</div>
+        <p className="empty-text">No hay niños registrados</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="table-container">
+      <table className="ninio-table">
+        <thead className="table-header">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Nombre
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              CI
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Edad
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Sexo
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Estado
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Fecha Ingreso
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Acciones
-            </th>
+            <th className="table-header-cell">Nombre</th>
+            <th className="table-header-cell">CI</th>
+            <th className="table-header-cell">Edad</th>
+            <th className="table-header-cell">Sexo</th>
+            <th className="table-header-cell">Estado</th>
+            <th className="table-header-cell">Fecha Ingreso</th>
+            <th className="table-header-cell">Acciones</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="table-body">
           {ninios.map((ninio) => (
             <tr 
               key={ninio.id}
               onClick={() => navigate(`/ninios/${ninio.id}`)}
-              className="hover:bg-gray-50 cursor-pointer transition-colors"
+              className="table-row"
             >
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 font-medium">
+              {/* COLUMNA 1: NOMBRE */}
+              <td className="table-cell">
+                <div className="user-cell">
+                  <div className="user-avatar">
+                    <span className="avatar-text">
                       {getInitials(ninio.nombre, ninio.apellido_paterno)}
                     </span>
                   </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {ninio.nombre} {ninio.apellido_paterno} {ninio.apellido_materno}
+                  <div className="user-info">
+                    <div className="user-name">
+                      {`${ninio.nombre || ''} ${ninio.apellido_paterno || ''} ${ninio.apellido_materno || ''}`.trim()}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {ninio.nacionalidad || 'No especificada'}
+                    <div className="user-detail">
+                      {ninio.nacionalidad || 'Boliviana'}
                     </div>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 font-mono">{ninio.ci || 'N/A'}</div>
+              
+              {/* COLUMNA 2: CI */}
+              <td className="table-cell">
+                <div className="ci-cell">{ninio.ci || 'Sin CI'}</div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {calcularEdad(ninio.fecha_nacimiento)}
+              
+              {/* COLUMNA 3: EDAD */}
+              <td className="table-cell">
+                <div className="age-cell">
+                  {calcularEdad(ninio.fecha_nacimiento, ninio.edad)}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 capitalize">{ninio.sexo || 'N/A'}</div>
+              
+              {/* COLUMNA 4: SEXO */}
+              <td className="table-cell">
+                <div className="sexo-cell capitalize">
+                  {ninio.sexo || 'No especificado'}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoColor(ninio.estado)}`}>
+              
+              {/* COLUMNA 5: ESTADO */}
+              <td className="table-cell">
+                <span className={`estado-badge ${getEstadoColor(ninio.estado)}`}>
                   {getEstadoText(ninio.estado)}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(ninio.fecha_ingreso)}
+              
+              {/* COLUMNA 6: FECHA INGRESO */}
+              <td className="table-cell">
+                {ninio.fecha_ingreso ? formatDate(ninio.fecha_ingreso) : 'No registrada'}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              
+              {/* COLUMNA 7: ACCIONES */}
+              <td className="table-cell">
+                <div className="actions-cell" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => navigate(`/ninios/${ninio.id}`)}
-                    className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="action-button view-button"
                     title="Ver detalles"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="action-icon" />
                   </button>
                   <button
                     onClick={() => navigate(`/ninios/edit/${ninio.id}`)}
-                    className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors"
+                    className="action-button edit-button"
                     title="Editar"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="action-icon" />
                   </button>
                   <button
                     onClick={(e) => handleDelete(ninio.id, e)}
-                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                    className="action-button delete-button"
                     title="Eliminar"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="action-icon" />
                   </button>
                 </div>
               </td>

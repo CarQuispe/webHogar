@@ -68,7 +68,7 @@ export const Sidebar = ({ isOpen, onToggle }) => {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                Hogar de Niños
+                Centro de acogida "Santa Emilia"
               </h3>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                 Sistema de Gestión
