@@ -85,7 +85,7 @@ export const NiniosListPage = () => {
   };
 
   const handleCreateNinio = () => {
-    navigate('/ninios/create');
+    navigate('/ninios/crear');
   };
 
   return (
