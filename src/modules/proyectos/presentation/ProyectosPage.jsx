@@ -1,19 +1,16 @@
 // src/modules/proyectos/presentation/ProyectosPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, ChevronRight, FileText, Users, Calendar, Target } from 'lucide-react';
-import ProyectosListPage from './ProyectosListPage';
+import { Plus, Search, Filter, ChevronRight, FileText, Users, Calendar, Target, Edit } from 'lucide-react';
 import './ProyectosPage.css';
 
 export const ProyectosPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  const [activeView, setActiveView] = useState('lista'); // 'lista', 'detalle', 'crear'
-  const [selectedProyecto, setSelectedProyecto] = useState(null);
 
   // Datos de ejemplo para proyectos
-  const proyectosEjemplo = [
+  const proyectos = [
     {
       id: 1,
       nombre: 'Educación Integral',
@@ -99,82 +96,20 @@ export const ProyectosPage = () => {
     navigate('/proyectos/crear');
   };
 
-  const handleViewDetail = (proyecto) => {
-    setSelectedProyecto(proyecto);
-    setActiveView('detalle');
+  const handleEditProyecto = (id) => {
+    navigate(`/proyectos/editar/${id}`);
   };
 
-  const handleBackToList = () => {
-    setActiveView('lista');
-    setSelectedProyecto(null);
+  const handleViewDetail = (id) => {
+    navigate(`/proyectos/${id}`);
   };
 
-  const filteredProyectos = proyectosEjemplo.filter(proyecto => {
+  const filteredProyectos = proyectos.filter(proyecto => {
     const matchesSearch = proyecto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proyecto.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'todos' || proyecto.estado === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  // Para efectos de demostración, si no hay componente ProyectoDetailPage, lo simulamos
-  const renderDetailView = () => {
-    return (
-      <div className="proyecto-detail-view">
-        <button 
-          onClick={handleBackToList}
-          className="back-button"
-        >
-          ← Volver a la lista
-        </button>
-        <div className="card">
-          <h2>{selectedProyecto.nombre}</h2>
-          <p>{selectedProyecto.descripcion}</p>
-          <div className="detail-grid">
-            <div className="detail-item">
-              <strong>Estado:</strong>
-              <span className={`status-badge status-${selectedProyecto.estado}`}>
-                {selectedProyecto.estado}
-              </span>
-            </div>
-            <div className="detail-item">
-              <strong>Fecha Inicio:</strong>
-              <span>{selectedProyecto.fechaInicio}</span>
-            </div>
-            <div className="detail-item">
-              <strong>Fecha Fin:</strong>
-              <span>{selectedProyecto.fechaFin}</span>
-            </div>
-            <div className="detail-item">
-              <strong>Niños Asociados:</strong>
-              <span>{selectedProyecto.niniosAsociados}</span>
-            </div>
-            <div className="detail-item">
-              <strong>Presupuesto:</strong>
-              <span>{selectedProyecto.presupuesto}</span>
-            </div>
-            <div className="detail-item">
-              <strong>Progreso:</strong>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${selectedProyecto.progreso}%` }}
-                ></div>
-              </div>
-              <span>{selectedProyecto.progreso}%</span>
-            </div>
-          </div>
-          <div className="responsables-section">
-            <h3>Responsables</h3>
-            <div className="responsables-list">
-              {selectedProyecto.responsables.map((resp, index) => (
-                <span key={index} className="responsable-tag">{resp}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="proyectos-page">
@@ -257,90 +192,96 @@ export const ProyectosPage = () => {
         </div>
       </div>
 
-      {/* Contenido principal */}
+      {/* Lista de proyectos */}
       <div className="proyectos-content">
-        {activeView === 'lista' ? (
-          <>
-            {/* Lista de proyectos */}
-            <div className="proyectos-list-header">
-              <h3>Proyectos ({filteredProyectos.length})</h3>
-            </div>
-            
-            {/* Aquí usarías el componente ProyectosListPage si existe */}
-            {filteredProyectos.length > 0 ? (
-              <div className="proyectos-grid">
-                {filteredProyectos.map(proyecto => (
-                  <div 
-                    key={proyecto.id} 
-                    className="proyecto-card card"
-                    onClick={() => handleViewDetail(proyecto)}
-                  >
-                    <div className="proyecto-card-header">
-                      <div>
-                        <h4>{proyecto.nombre}</h4>
-                        <p>{proyecto.descripcion}</p>
-                      </div>
-                      <span className={`status-badge status-${proyecto.estado}`}>
-                        {proyecto.estado}
-                      </span>
-                    </div>
-                    
-                    <div className="proyecto-meta">
-                      <div className="meta-item">
-                        <Calendar size={16} />
-                        <span>Inicio: {proyecto.fechaInicio}</span>
-                      </div>
-                      <div className="meta-item">
-                        <Users size={16} />
-                        <span>{proyecto.niniosAsociados} niños</span>
-                      </div>
-                      <div className="meta-item">
-                        <FileText size={16} />
-                        <span>{proyecto.presupuesto}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="proyecto-progress">
-                      <div className="progress-info">
-                        <span>Progreso</span>
-                        <span>{proyecto.progreso}%</span>
-                      </div>
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill" 
-                          style={{ width: `${proyecto.progreso}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="proyecto-footer">
-                      <div className="responsables">
-                        {proyecto.responsables.map((resp, idx) => (
-                          <span key={idx} className="responsable-tag">{resp}</span>
-                        ))}
-                      </div>
-                      <ChevronRight size={20} />
-                    </div>
+        <div className="proyectos-list-header">
+          <h3>Proyectos ({filteredProyectos.length})</h3>
+        </div>
+        
+        {filteredProyectos.length > 0 ? (
+          <div className="proyectos-grid">
+            {filteredProyectos.map(proyecto => (
+              <div 
+                key={proyecto.id} 
+                className="proyecto-card card"
+              >
+                <div className="proyecto-card-header">
+                  <div>
+                    <h4>{proyecto.nombre}</h4>
+                    <p>{proyecto.descripcion}</p>
                   </div>
-                ))}
+                  <span className={`status-badge status-${proyecto.estado}`}>
+                    {proyecto.estado}
+                  </span>
+                </div>
+                
+                <div className="proyecto-meta">
+                  <div className="meta-item">
+                    <Calendar size={16} />
+                    <span>Inicio: {proyecto.fechaInicio}</span>
+                  </div>
+                  <div className="meta-item">
+                    <Users size={16} />
+                    <span>{proyecto.niniosAsociados} niños</span>
+                  </div>
+                  <div className="meta-item">
+                    <FileText size={16} />
+                    <span>{proyecto.presupuesto}</span>
+                  </div>
+                </div>
+                
+                <div className="proyecto-progress">
+                  <div className="progress-info">
+                    <span>Progreso</span>
+                    <span>{proyecto.progreso}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${proyecto.progreso}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="proyecto-footer">
+                  <div className="responsables">
+                    {proyecto.responsables.map((resp, idx) => (
+                      <span key={idx} className="responsable-tag">{resp}</span>
+                    ))}
+                  </div>
+                  <div className="proyecto-actions">
+                    <button 
+                      onClick={() => handleViewDetail(proyecto.id)}
+                      className="btn-view"
+                      title="Ver detalle"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                    <button 
+                      onClick={() => handleEditProyecto(proyecto.id)}
+                      className="btn-edit"
+                      title="Editar"
+                    >
+                      <Edit size={16} />
+                    </button>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="empty-state card">
-                <p>No se encontraron proyectos con los filtros actuales</p>
-                <button 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('todos');
-                  }}
-                  className="btn-secondary"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            )}
-          </>
+            ))}
+          </div>
         ) : (
-          renderDetailView()
+          <div className="empty-state card">
+            <p>No se encontraron proyectos con los filtros actuales</p>
+            <button 
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('todos');
+              }}
+              className="btn-secondary"
+            >
+              Limpiar filtros
+            </button>
+          </div>
         )}
       </div>
     </div>
