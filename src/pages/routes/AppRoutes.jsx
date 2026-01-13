@@ -30,8 +30,8 @@ const ProyectoDetailPage = lazy(() => import('../../modules/proyectos/presentati
 const CreateProyectoPage = lazy(() => import('../../modules/proyectos/presentation/CreateProyectoPage.jsx'));
 
 // Módulo SEDEPOS
-const SedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/SedeposPage.jsx'));
-const SedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/SedeposListPage.jsx'));
+const SedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposPage.jsx'));
+const SedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposListPage.jsx'));
 const CreateSedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/CreateSedeposPage.jsx'));
 
 // Módulo Usuarios
