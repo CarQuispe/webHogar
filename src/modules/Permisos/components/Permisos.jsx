@@ -1,4 +1,5 @@
 // (Componente completo más abajo)
+
 // src/modules/Permisos/components/Permisos.jsx
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { TabView, TabPanel } from 'primereact/tabview';
@@ -11,11 +12,9 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Checkbox } from 'primereact/checkbox';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { apiService } from '../../../services/apiService';
-import './Permisos.css';
-import '../../Cotizacion/styles/PasajerosTab.css';
-import { useAuth } from '../../../modules/auth/context/AuthContext';// src/contexts/AuthContext.jsx
+import { useAuth } from '../../../contexts/AuthContext';
 import { usePermissions } from '../../../contexts/PermissionsContext';
+import './Permisos.css';
 
 // Opciones de estado (combobox crear usuario)
 const ESTADOS = [ { label:'Activo', value:'activo'}, { label:'Suspendido', value:'suspendido'} ];
@@ -32,6 +31,98 @@ function formatSpanishDate(dateStr) {
     .join(' ');
 }
 
+// Mock apiService para desarrollo (reemplaza con el real cuando esté disponible)
+const mockApiService = {
+  getUsers: async () => {
+    // Datos de ejemplo
+    return [
+      { id: 1, nombre: 'Admin Principal', email: 'admin@hogar.com', area: 'Administración', username: 'admin', status: 'activo', createdAt: '2024-01-15' },
+      { id: 2, nombre: 'María García', email: 'maria@hogar.com', area: 'Educación', username: 'maria.g', status: 'activo', createdAt: '2024-02-20' },
+      { id: 3, nombre: 'Juan Pérez', email: 'juan@hogar.com', area: 'Salud', username: 'juan.p', status: 'activo', createdAt: '2024-03-10' },
+    ];
+  },
+
+  listPermissionModules: async () => {
+    // Módulos de ejemplo
+    return [
+      {
+        id: 1,
+        code: 'dashboard',
+        name: 'Dashboard',
+        actions: [
+          { id: 1, action: 'VIEW', label: 'Ver' },
+          { id: 2, action: 'EXPORT', label: 'Exportar' }
+        ]
+      },
+      {
+        id: 2,
+        code: 'ninios',
+        name: 'Niños',
+        actions: [
+          { id: 3, action: 'VIEW', label: 'Ver' },
+          { id: 4, action: 'CREATE', label: 'Crear' },
+          { id: 5, action: 'EDIT', label: 'Editar' },
+          { id: 6, action: 'DELETE', label: 'Eliminar' }
+        ]
+      },
+      {
+        id: 3,
+        code: 'proyectos',
+        name: 'Proyectos',
+        actions: [
+          { id: 7, action: 'VIEW', label: 'Ver' },
+          { id: 8, action: 'CREATE', label: 'Crear' },
+          { id: 9, action: 'EDIT', label: 'Editar' }
+        ]
+      }
+    ];
+  },
+
+  getUserPermissions: async (userId) => {
+    // Permisos de ejemplo
+    const permissions = {
+      1: [
+        { action: { id: 1, action: 'VIEW', module: { code: 'dashboard' } }, grantedAt: '2024-01-15' },
+        { action: { id: 3, action: 'VIEW', module: { code: 'ninios' } }, grantedAt: '2024-01-15' },
+        { action: { id: 4, action: 'CREATE', module: { code: 'ninios' } }, grantedAt: '2024-01-15' },
+      ],
+      2: [
+        { action: { id: 1, action: 'VIEW', module: { code: 'dashboard' } }, grantedAt: '2024-02-20' },
+        { action: { id: 3, action: 'VIEW', module: { code: 'ninios' } }, grantedAt: '2024-02-20' },
+      ],
+      3: [
+        { action: { id: 1, action: 'VIEW', module: { code: 'dashboard' } }, grantedAt: '2024-03-10' },
+        { action: { id: 7, action: 'VIEW', module: { code: 'proyectos' } }, grantedAt: '2024-03-10' },
+      ]
+    };
+    return permissions[userId] || [];
+  },
+
+  grantUserPermissions: async (userId, actionIds) => {
+    console.log(`Granting permissions ${actionIds} to user ${userId}`);
+    return { success: true };
+  },
+
+  revokeUserPermissions: async (userId, actionIds) => {
+    console.log(`Revoking permissions ${actionIds} from user ${userId}`);
+    return { success: true };
+  },
+
+  createUserAdmin: async (data) => {
+    console.log('Creating user:', data);
+    return { 
+      user: { 
+        id: Date.now(), 
+        ...data, 
+        createdAt: new Date().toISOString().split('T')[0] 
+      } 
+    };
+  }
+};
+
+// Usa este servicio mock o reemplázalo con el real
+const apiService = mockApiService;
+
 const Permisos = () => {
   // Tabs
   const [activeIndex, setActiveIndex] = useState(0);
@@ -42,8 +133,8 @@ const Permisos = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   // Permisos / módulos
-  const [modules, setModules] = useState([]); // [{ id, code, name, actions:[{id, action, label}] }]
-  const [userPerms, setUserPerms] = useState([]); // [{ action: { id, action, module:{ code } } }]
+  const [modules, setModules] = useState([]);
+  const [userPerms, setUserPerms] = useState([]);
   const [loadingPerms, setLoadingPerms] = useState(false);
   const [loadingModules, setLoadingModules] = useState(false);
 
@@ -59,16 +150,31 @@ const Permisos = () => {
   // Carga usuarios
   const loadUsers = async () => {
     setLoadingUsers(true);
-    try { setUsers(await apiService.getUsers()); }
-    catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+    try { 
+      const data = await apiService.getUsers();
+      setUsers(data); 
+    }
+    catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al cargar usuarios' 
+      }); 
+    }
     finally { setLoadingUsers(false); }
   };
 
   // Carga módulos definidos
   const loadModules = async () => {
     setLoadingModules(true);
-    try { setModules(await apiService.listPermissionModules()); }
-    catch(e){ /* noop */ }
+    try { 
+      const data = await apiService.listPermissionModules();
+      setModules(data); 
+    }
+    catch(e){ 
+      console.error('Error loading modules:', e);
+      // No mostrar error para no molestar al usuario
+    }
     finally { setLoadingModules(false); }
   };
 
@@ -76,17 +182,33 @@ const Permisos = () => {
   const loadUserPerms = async (user) => {
     if (!user) return;
     setLoadingPerms(true);
-    try { setUserPerms(await apiService.getUserPermissions(user.id)); }
-    catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+    try { 
+      const data = await apiService.getUserPermissions(user.id);
+      setUserPerms(data); 
+    }
+    catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al cargar permisos' 
+      }); 
+    }
     finally { setLoadingPerms(false); }
   };
 
   // Efectos inicial / cuando cambia usuario
-  useEffect(() => { loadUsers(); loadModules(); }, []);
-  useEffect(() => { if (selectedUser) loadUserPerms(selectedUser); }, [selectedUser]);
+  useEffect(() => { 
+    loadUsers(); 
+    loadModules(); 
+  }, []);
+  
+  useEffect(() => { 
+    if (selectedUser) loadUserPerms(selectedUser); 
+  }, [selectedUser]);
 
   // Helpers
-  const userHasAction = (moduleCode, actionCode) => userPerms.some(p => p.action.module.code === moduleCode && p.action.action === actionCode);
+  const userHasAction = (moduleCode, actionCode) => 
+    userPerms.some(p => p.action.module.code === moduleCode && p.action.action === actionCode);
 
   // Compute latest grantedAt per module from userPerms
   const moduleUpdatedMap = useMemo(() => {
@@ -107,125 +229,196 @@ const Permisos = () => {
   const toggleAction = async (moduleObj, actionObj, checked) => {
     if (!selectedUser) return;
     if (!isAdmin) {
-      toast.current?.show({ severity:'warn', summary:'Solo administradores', detail:'No tienes permisos para modificar.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'Solo administradores', 
+        detail:'No tienes permisos para modificar.' 
+      });
       return;
     }
     if (authUser && selectedUser.id === authUser.id) {
-      toast.current?.show({ severity:'warn', summary:'No permitido', detail:'No puedes modificar tus propios permisos.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'No permitido', 
+        detail:'No puedes modificar tus propios permisos.' 
+      });
       return;
     }
     try {
       const moduleCode = moduleObj.code;
       const actionCode = actionObj.action;
-      // Find view action id for this module (if exists)
       const viewAction = (moduleObj.actions || []).find(a => a.action === 'VIEW');
 
       if (checked) {
-        // If granting CREATE/EDIT/DELETE and VIEW not present, grant VIEW too
         const idsToGrant = [actionObj.id];
         if (actionCode !== 'VIEW' && viewAction && !userHasAction(moduleCode, 'VIEW')) {
           idsToGrant.unshift(viewAction.id);
         }
         if (idsToGrant.length) await apiService.grantUserPermissions(selectedUser.id, idsToGrant);
       } else {
-        // Unchecking
         if (actionCode === 'VIEW') {
-          // If other actions exist, prevent removing VIEW until they are removed first
-          const othersActive = (moduleObj.actions || []).some(a => a.action !== 'VIEW' && userHasAction(moduleCode, a.action));
+          const othersActive = (moduleObj.actions || [])
+            .some(a => a.action !== 'VIEW' && userHasAction(moduleCode, a.action));
           if (othersActive) {
-            toast.current?.show({ severity:'warn', summary:'Acción requerida', detail:'Desactiva primero Crear/Editar/Eliminar antes de quitar Ver.' });
+            toast.current?.show({ 
+              severity:'warn', 
+              summary:'Acción requerida', 
+              detail:'Desactiva primero Crear/Editar/Eliminar antes de quitar Ver.' 
+            });
             return;
           }
-          // safe to revoke VIEW
           await apiService.revokeUserPermissions(selectedUser.id, [actionObj.id]);
         } else {
-          // revoke only this action
           await apiService.revokeUserPermissions(selectedUser.id, [actionObj.id]);
         }
       }
       await loadUserPerms(selectedUser);
-      // notify global permissions context to refresh menus if changed
       try { refreshPerms(); } catch (e) { /* noop */ }
-    } catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+    } catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al actualizar permisos' 
+      }); 
+    }
   };
 
-  // Ocultar módulo (revoca todas) o mostrar (activa todas inicialmente)
+  // Ocultar módulo
   const toggleHideModule = async (moduleObj, hide) => {
     if (!selectedUser) return;
     if (!isAdmin) {
-      toast.current?.show({ severity:'warn', summary:'Solo administradores', detail:'No tienes permisos para modificar.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'Solo administradores', 
+        detail:'No tienes permisos para modificar.' 
+      });
       return;
     }
     if (authUser && selectedUser.id === authUser.id) {
-      toast.current?.show({ severity:'warn', summary:'No permitido', detail:'No puedes modificar tu propio módulo.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'No permitido', 
+        detail:'No puedes modificar tu propio módulo.' 
+      });
       return;
     }
     const actionIds = moduleObj.actions.map(a => a.id);
     try {
-      if (hide) await apiService.revokeUserPermissions(selectedUser.id, actionIds);
-      else await apiService.grantUserPermissions(selectedUser.id, actionIds); // activa todo; luego puede desmarcar granular
+      if (hide) {
+        await apiService.revokeUserPermissions(selectedUser.id, actionIds);
+      } else {
+        await apiService.grantUserPermissions(selectedUser.id, actionIds);
+      }
       loadUserPerms(selectedUser);
-    } catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+    } catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al modificar módulo' 
+      }); 
+    }
   };
 
-  // Activar módulo (similar a mostrar) / desactivar (revocar todas)
+  // Activar módulo
   const toggleActivateModule = async (moduleObj, activate) => {
     if (!selectedUser) return;
     if (!isAdmin) {
-      toast.current?.show({ severity:'warn', summary:'Solo administradores', detail:'No tienes permisos para modificar.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'Solo administradores', 
+        detail:'No tienes permisos para modificar.' 
+      });
       return;
     }
     if (authUser && selectedUser.id === authUser.id) {
-      toast.current?.show({ severity:'warn', summary:'No permitido', detail:'No puedes modificar tu propio módulo.' });
+      toast.current?.show({ 
+        severity:'warn', 
+        summary:'No permitido', 
+        detail:'No puedes modificar tu propio módulo.' 
+      });
       return;
     }
     const actionIds = moduleObj.actions.map(a => a.id);
     try {
       if (activate) {
-        // Solo asigna las que faltan para no tocar selecciones existentes (aunque al activar desde oculto se habían revocado todas)
-        const missing = actionIds.filter(id => !userPerms.some(p => p.action.id === id));
-        if (missing.length) await apiService.grantUserPermissions(selectedUser.id, missing);
+        const missing = actionIds.filter(id => 
+          !userPerms.some(p => p.action.id === id)
+        );
+        if (missing.length) {
+          await apiService.grantUserPermissions(selectedUser.id, missing);
+        }
       } else {
         await apiService.revokeUserPermissions(selectedUser.id, actionIds);
       }
       loadUserPerms(selectedUser);
-    } catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+    } catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al modificar módulo' 
+      }); 
+    }
   };
 
   // Crear usuario
-  const openNew = () => { setForm({ nombre:'', email:'', area:'', username:'', status:'activo' }); setShowNew(true); };
+  const openNew = () => { 
+    setForm({ nombre:'', email:'', area:'', username:'', status:'activo' }); 
+    setShowNew(true); 
+  };
+
   const createUser = async () => {
     setCreating(true);
     try {
       const payload = { ...form };
-  const { user } = await apiService.createUserAdmin(payload);
-  toast.current?.show({ severity:'success', summary:'Usuario creado', detail: 'Se ha creado el usuario correctamente. La contraseña fue enviada al correo.' });
-      setShowNew(false); loadUsers();
-    } catch(e){ toast.current?.show({ severity:'error', summary:'Error', detail:e.message }); }
+      const { user } = await apiService.createUserAdmin(payload);
+      toast.current?.show({ 
+        severity:'success', 
+        summary:'Usuario creado', 
+        detail: 'Usuario creado correctamente (modo demo)' 
+      });
+      setShowNew(false); 
+      loadUsers();
+    } catch(e){ 
+      toast.current?.show({ 
+        severity:'error', 
+        summary:'Error', 
+        detail:'Error al crear usuario' 
+      }); 
+    }
     finally { setCreating(false); }
   };
 
   // Tabla Usuarios
   const UsersTab = (
-      <div className="pasajeros-tab">
-        <div className="pasajeros-header">
-          <div className="pasajeros-title">
-            <h3 style={{ margin:0 }}>Usuarios</h3>
-            <p className="cotizacion-info">Administración de usuarios y sus permisos</p>
-          </div>
-          <div className="pasajeros-actions">
-            {isAdmin && (
-              <Button onClick={openNew} label="Nuevo" icon="pi pi-plus" outlined className="btn-nuevo-usuario" />
-            )}
-          </div>
-        </div>      <div className="card" style={{ borderRadius:8 }}>
+    <div className="pasajeros-tab">
+      <div className="pasajeros-header">
+        <div className="pasajeros-title">
+          <h3 style={{ margin:0 }}>Usuarios</h3>
+          <p className="cotizacion-info">Administración de usuarios y sus permisos</p>
+        </div>
+        <div className="pasajeros-actions">
+          {isAdmin && (
+            <Button 
+              onClick={openNew} 
+              label="Nuevo" 
+              icon="pi pi-plus" 
+              outlined 
+              className="btn-nuevo-usuario" 
+            />
+          )}
+        </div>
+      </div>
+      <div className="card" style={{ borderRadius:8 }}>
         <div style={{ padding: '12px' }}>
           <DataTable
             value={users}
             loading={loadingUsers}
             size='small'
             emptyMessage="No hay usuarios"
-            onRowClick={e => { setSelectedUser(e.data); setActiveIndex(1); }}
+            onRowClick={e => { 
+              setSelectedUser(e.data); 
+              setActiveIndex(1); 
+            }}
             paginator
             rows={4}
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
@@ -233,12 +426,46 @@ const Permisos = () => {
             style={{ cursor:'pointer' }}
             className="usuarios-datatable"
           >
-            <Column field="nombre" header="Nombres" body={r => <span style={{ fontWeight:500 }} data-label="Nombres">{r.nombre}</span>} sortable />
-            <Column field="email" header="Correo" body={r => <span data-label="Correo">{r.email}</span>} sortable />
-            <Column field="area" header="Area" body={r => <span data-label="Área">{r.area}</span>} />
-            <Column field="username" header="Usuario" body={r => <span data-label="Usuario">{r.username}</span>} sortable />
-            <Column header="Fecha registrada" body={r => <span data-label="Fecha registrada">{formatSpanishDate(r.createdAt)}</span>} sortable sortField="createdAt" />
-            <Column header="Estado" body={r => <span className={`user-status ${r.status}`} data-label="Estado">{r.status === 'activo' ? 'Activo' : 'Suspendido'}</span>} />
+            <Column 
+              field="nombre" 
+              header="Nombres" 
+              body={r => <span style={{ fontWeight:500 }} data-label="Nombres">{r.nombre}</span>} 
+              sortable 
+            />
+            <Column 
+              field="email" 
+              header="Correo" 
+              body={r => <span data-label="Correo">{r.email}</span>} 
+              sortable 
+            />
+            <Column 
+              field="area" 
+              header="Area" 
+              body={r => <span data-label="Área">{r.area}</span>} 
+            />
+            <Column 
+              field="username" 
+              header="Usuario" 
+              body={r => <span data-label="Usuario">{r.username}</span>} 
+              sortable 
+            />
+            <Column 
+              header="Fecha registrada" 
+              body={r => <span data-label="Fecha registrada">{formatSpanishDate(r.createdAt)}</span>} 
+              sortable 
+              sortField="createdAt" 
+            />
+            <Column 
+              header="Estado" 
+              body={r => (
+                <span 
+                  className={`user-status ${r.status}`} 
+                  data-label="Estado"
+                >
+                  {r.status === 'activo' ? 'Activo' : 'Suspendido'}
+                </span>
+              )} 
+            />
           </DataTable>
         </div>
       </div>
@@ -275,28 +502,42 @@ const Permisos = () => {
                     {modules.length === 0 && (
                       <tr>
                         <td colSpan={4} style={{ padding:'2rem', textAlign:'center', color:'#777' }}>
-                          No hay módulos de permisos cargados. Verifica que el backend haya ejecutado el seed.
+                          No hay módulos de permisos cargados. (Modo demo)
                         </td>
                       </tr>
                     )}
                     {modules.map(m => {
-                      // Mantener solo acciones importantes y en orden
                       const order = ['VIEW','CREATE','EDIT','DELETE','EXPORT','ASSIGN'];
-                      const labelMap = { VIEW:'Ver', CREATE:'Crear', EDIT:'Editar', DELETE:'Eliminar', EXPORT:'Exportar', ASSIGN:'Asignar' };
+                      const labelMap = { 
+                        VIEW:'Ver', 
+                        CREATE:'Crear', 
+                        EDIT:'Editar', 
+                        DELETE:'Eliminar', 
+                        EXPORT:'Exportar', 
+                        ASSIGN:'Asignar' 
+                      };
+                      
                       const actions = (m.actions || [])
                         .filter(a => order.includes(a.action))
                         .sort((a,b) => order.indexOf(a.action) - order.indexOf(b.action))
-                        .map(a => ({ ...a, uiLabel: a.label || labelMap[a.action] || a.action }));
+                        .map(a => ({ 
+                          ...a, 
+                          uiLabel: a.label || labelMap[a.action] || a.action 
+                        }));
 
-                      if (actions.length === 0) return null; // omitir módulos sin acciones relevantes
+                      if (actions.length === 0) return null;
+                      
                       const hasAny = actions.some(a => userHasAction(m.code, a.action));
-                      const hidden = !hasAny; // Ocultar cuando no tiene ninguna acción
-                      const activarChecked = hasAny; // Según screenshot: activar marcado aunque no todas las acciones estén activas
+                      const hidden = !hasAny;
+                      const activarChecked = hasAny;
                       const actionIds = actions.map(a => a.id);
+                      
                       return (
                         <React.Fragment key={m.id}>
                           <tr className='module-row'>
-                            <td className='permisos-module-name' data-label="Módulo">{m.nombre || m.name || m.code}</td>
+                            <td className='permisos-module-name' data-label="Módulo">
+                              {m.nombre || m.name || m.code}
+                            </td>
                             <td data-label="Ocultar">
                               <Checkbox
                                 inputId={`hide-${m.id}`}
@@ -313,11 +554,17 @@ const Permisos = () => {
                                 onChange={e => toggleActivateModule(m, e.checked)}
                               />
                             </td>
-                            <td className='permisos-updated' data-label="Fecha actualizada">{moduleUpdatedMap[m.code] ? formatSpanishDate(new Date(moduleUpdatedMap[m.code])) : ''}</td>
+                            <td className='permisos-updated' data-label="Fecha actualizada">
+                              {moduleUpdatedMap[m.code] ? 
+                                formatSpanishDate(new Date(moduleUpdatedMap[m.code]).toISOString()) : 
+                                'Sin fecha'}
+                            </td>
                           </tr>
                           {actions.map(a => (
                             <tr key={a.id} className='action-row'>
-                              <td className='permisos-subaction' data-label="Acción">{a.uiLabel}</td>
+                              <td className='permisos-subaction' data-label="Acción">
+                                {a.uiLabel}
+                              </td>
                               <td data-label=""></td>
                               <td data-label="Permitir">
                                 <Checkbox
@@ -340,7 +587,9 @@ const Permisos = () => {
           </div>
         </>
       ) : (
-        <div style={{ color:'#666', padding:'2rem 0' }}>Selecciona un usuario en la pestaña Usuarios.</div>
+        <div style={{ color:'#666', padding:'2rem 0' }}>
+          Selecciona un usuario en la pestaña Usuarios.
+        </div>
       )}
     </div>
   );
@@ -369,7 +618,7 @@ const Permisos = () => {
             <InputText 
               id='nombre' 
               value={form.nombre} 
-              onChange={e=> setForm(f=>({...f, nombre:e.target.value}))} 
+              onChange={e => setForm(f => ({...f, nombre:e.target.value}))} 
               autoComplete="off"
             />
             <label htmlFor='nombre'>Nombres *</label>
@@ -378,7 +627,7 @@ const Permisos = () => {
             <InputText 
               id='email' 
               value={form.email} 
-              onChange={e=> setForm(f=>({...f, email:e.target.value}))} 
+              onChange={e => setForm(f => ({...f, email:e.target.value}))} 
               type="email"
               autoComplete="email"
             />
@@ -388,7 +637,7 @@ const Permisos = () => {
             <InputText 
               id='area' 
               value={form.area} 
-              onChange={e=> setForm(f=>({...f, area:e.target.value}))} 
+              onChange={e => setForm(f => ({...f, area:e.target.value}))} 
               autoComplete="organization"
             />
             <label htmlFor='area'>Área</label>
@@ -397,7 +646,7 @@ const Permisos = () => {
             <InputText 
               id='username' 
               value={form.username} 
-              onChange={e=> setForm(f=>({...f, username:e.target.value}))} 
+              onChange={e => setForm(f => ({...f, username:e.target.value}))} 
               autoComplete="username"
             />
             <label htmlFor='username'>Usuario *</label>
@@ -407,7 +656,7 @@ const Permisos = () => {
               id='status' 
               value={form.status} 
               options={ESTADOS} 
-              onChange={e=> setForm(f=>({...f, status:e.value}))} 
+              onChange={e => setForm(f => ({...f, status:e.value}))} 
               optionLabel='label' 
               optionValue='value' 
             />
@@ -418,7 +667,7 @@ const Permisos = () => {
           <Button 
             label='Cancelar' 
             text 
-            onClick={()=> setShowNew(false)} 
+            onClick={() => setShowNew(false)} 
             className="btn-cancelar"
           />
           <Button 

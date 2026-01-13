@@ -1,5 +1,4 @@
-//api.js
-//
+// src/services/apiService.js
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -32,7 +31,6 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Redirigir a login si no está autenticado
           localStorage.removeItem('token');
           window.location.href = '/login';
           break;
@@ -48,66 +46,69 @@ api.interceptors.response.use(
         default:
           console.error('Error desconocido:', error.message);
       }
-    } else if (error.request) {
-      console.error('No se recibió respuesta del servidor');
-    } else {
-      console.error('Error al hacer la petición:', error.message);
     }
-    
     return Promise.reject(error);
   }
 );
 
-// Funciones API comunes
+// Funciones específicas que necesita Permisos.jsx
 export const apiService = {
-  // GET request
+  // Métodos básicos
   get: async (endpoint, params = {}) => {
     const response = await api.get(endpoint, { params });
     return response.data;
   },
 
-  // POST request
   post: async (endpoint, data = {}) => {
     const response = await api.post(endpoint, data);
     return response.data;
   },
 
-  // PUT request
   put: async (endpoint, data = {}) => {
     const response = await api.put(endpoint, data);
     return response.data;
   },
 
-  // DELETE request
   delete: async (endpoint) => {
     const response = await api.delete(endpoint);
     return response.data;
   },
 
-  // PATCH request
   patch: async (endpoint, data = {}) => {
     const response = await api.patch(endpoint, data);
     return response.data;
   },
 
-  // Upload file
-  upload: async (endpoint, file, onProgress = null) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  // Métodos específicos para usuarios y permisos
+  getUsers: async () => {
+    const response = await api.get('/users');
+    return response.data;
+  },
 
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    };
+  createUserAdmin: async (data) => {
+    const response = await api.post('/users/admin', data);
+    return response.data;
+  },
 
-    if (onProgress) {
-      config.onUploadProgress = onProgress;
-    }
+  listPermissionModules: async () => {
+    const response = await api.get('/permissions/modules');
+    return response.data;
+  },
 
-    const response = await api.post(endpoint, formData, config);
+  getUserPermissions: async (userId) => {
+    const response = await api.get(`/users/${userId}/permissions`);
+    return response.data;
+  },
+
+  grantUserPermissions: async (userId, actionIds) => {
+    const response = await api.post(`/users/${userId}/permissions/grant`, { actionIds });
+    return response.data;
+  },
+
+  revokeUserPermissions: async (userId, actionIds) => {
+    const response = await api.post(`/users/${userId}/permissions/revoke`, { actionIds });
     return response.data;
   },
 };
 
-export default api;
+export default apiService;
