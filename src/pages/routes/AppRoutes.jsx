@@ -24,14 +24,16 @@ const CreateNinioPage = lazy(() => import('../../modules/ninios/presentation/pag
 const NinioDetailPage = lazy(() => import('../../modules/ninios/presentation/pages/NinioDetailPage.jsx'));
 
 // Módulo Proyectos
+
 const ProyectosPage = lazy(() => import('../../modules/proyectos/presentation/ProyectosPage.jsx'));
-const ProyectosListPage = lazy(() => import('../../modules/proyectos/presentation/proyectosListPage.jsx'));// src/modules/proyectos/presentation/proyectosListPage.jsx
+const proyectosListPage = lazy(() => import('../../modules/proyectos/presentation/proyectosListPage.jsx'));
 const ProyectoDetailPage = lazy(() => import('../../modules/proyectos/presentation/ProyectoDetailPage.jsx'));
 const CreateProyectoPage = lazy(() => import('../../modules/proyectos/presentation/CreateProyectoPage.jsx'));
 
+
 // Módulo SEDEPOS
-const SedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposPage.jsx'));
-const SedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposListPage.jsx'));
+const sedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposPage.jsx'));
+const sedeposListPage = lazy(() => import('../../modules/sedepos/presentation/pages/sedeposListPage.jsx'));
 const CreateSedeposPage = lazy(() => import('../../modules/sedepos/presentation/pages/CreateSedeposPage.jsx'));
 
 // Módulo Usuarios
@@ -65,14 +67,14 @@ const AppRoutes = () => (
           
           {/* Módulo Proyectos */}
           <Route path="/proyectos" element={<ProyectosPage />} />
-          <Route path="/proyectos/lista" element={<ProyectosListPage />} />
+          <Route path="/proyectos/lista" element={<proyectosListPage />} />
           <Route path="/proyectos/crear" element={<CreateProyectoPage />} />
           <Route path="/proyectos/editar/:id" element={<CreateProyectoPage />} />
           <Route path="/proyectos/:id" element={<ProyectoDetailPage />} />
           
           {/* Módulo SEDEPOS */}
-          <Route path="/sedepos" element={<SedeposPage />} />
-          <Route path="/sedepos/lista" element={<SedeposListPage />} />
+          <Route path="/sedepos" element={<sedeposPage />} />
+          <Route path="/sedepos/lista" element={<sedeposListPage />} />
           <Route path="/sedepos/nuevo" element={<CreateSedeposPage />} />
           <Route path="/sedepos/editar/:id" element={<CreateSedeposPage />} />
           
