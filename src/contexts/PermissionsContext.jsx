@@ -1,7 +1,7 @@
 // src/contexts/PermissionsContext.jsx
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { apiService } from '../services/api/apiService';
-import { useAuth } from '../modules/auth/context/AuthContext';
+import { useAuth } from './AuthContext';
 
 const PermissionsContext = createContext(null);
 
