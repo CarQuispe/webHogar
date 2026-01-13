@@ -25,7 +25,7 @@ const NinioDetailPage = lazy(() => import('../../modules/ninios/presentation/pag
 
 // Módulo Proyectos
 const ProyectosPage = lazy(() => import('../../modules/proyectos/presentation/ProyectosPage.jsx'));
-const ProyectosListPage = lazy(() => import('../../modules/proyectos/presentation/ProyectosListPage.jsx'));
+const ProyectosListPage = lazy(() => import('../../modules/proyectos/presentation/proyectosListPage.jsx'));// src/modules/proyectos/presentation/proyectosListPage.jsx
 const ProyectoDetailPage = lazy(() => import('../../modules/proyectos/presentation/ProyectoDetailPage.jsx'));
 const CreateProyectoPage = lazy(() => import('../../modules/proyectos/presentation/CreateProyectoPage.jsx'));
 
